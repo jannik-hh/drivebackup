@@ -98,7 +98,7 @@ public class DefaultGDirectory implements GDirectory {
 			String title = file.getTitle();
 			if (!fileAndDirectoryNames.contains(title)) {
 				drive.files().trash(file.getId()).execute();
-				logger.info("{} trashed");
+				logger.info("{} trashed", title);
 			}
 		}
 
