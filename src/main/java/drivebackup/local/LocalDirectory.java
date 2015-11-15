@@ -24,10 +24,7 @@ public interface LocalDirectory {
 	public default void backup(GDirectory gDir) throws IOException {
 		getFiles().parallel().forEach((file) -> {
 			try {
-				final long before = System.currentTimeMillis();
 				gDir.saveOrUpdateFile(file);
-				final long after = System.currentTimeMillis();
-				logger.info("{} saved or updated in {} sec", file.getPath(), (after - before) / 1000);
 			} catch (Exception e) {
 				throw new RuntimeException(e);
 			}

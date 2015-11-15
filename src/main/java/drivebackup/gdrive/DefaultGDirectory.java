@@ -4,10 +4,14 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.google.api.client.http.AbstractInputStreamContent;
 import com.google.api.client.http.InputStreamContent;
@@ -24,6 +28,7 @@ import drivebackup.encryption.EncryptionService;
 public class DefaultGDirectory implements GDirectory {
 	private final static String FIND_FOLDER_QUERY = "title = '%s' and mimeType = 'application/vnd.google-apps.folder' and trashed=false";
 	private final static String MD5_PROPERTY_NAME = "orig_md5";
+	private static final Logger logger = LogManager.getLogger("DriveBackup");
 	private final Drive drive;
 	private final EncryptionService encryptionService;
 
@@ -50,12 +55,21 @@ public class DefaultGDirectory implements GDirectory {
 	@Override
 	public File saveOrUpdateFile(java.io.File file) throws IOException {
 		String localFileName = file.getName();
+		String localFilePath = file.getPath();
 		File remoteFile = findFile(localFileName);
 		if (remoteFile == null) {
-			return saveFile(file);
+			long start = System.currentTimeMillis();
+			File savedFile = saveFile(file);
+			logExecutionTime(String.format("%s saved", localFilePath), start);
+			return savedFile;
+			
 		} else if (needsUpdate(file, remoteFile)) {
-			return updateFile(remoteFile, file);
+			long start = System.currentTimeMillis();
+			File updatedFile = updateFile(remoteFile, file);
+			logExecutionTime(String.format("%s updated", localFilePath), start);
+			return updatedFile;
 		} else {
+			logger.info("{} is up-to-date", localFilePath);
 			return remoteFile;
 		}
 
@@ -81,8 +95,10 @@ public class DefaultGDirectory implements GDirectory {
 		String query = String.format("'%s' in parents and trashed=false", parentID);
 		FileList fileList = drive.files().list().setQ(query).execute();
 		for (File file : fileList.getItems()) {
-			if (!fileAndDirectoryNames.contains(file.getTitle())) {
+			String title = file.getTitle();
+			if (!fileAndDirectoryNames.contains(title)) {
 				drive.files().trash(file.getId()).execute();
+				logger.info("{} trashed");
 			}
 		}
 
@@ -154,14 +170,21 @@ public class DefaultGDirectory implements GDirectory {
 	}
 
 	private String md5Checksum(java.io.File localFile) throws IOException {
+		long start = System.currentTimeMillis();
 		FileInputStream fis = new FileInputStream(localFile);
-		return org.apache.commons.codec.digest.DigestUtils.md5Hex(fis);
+		String md5Checksum = org.apache.commons.codec.digest.DigestUtils.md5Hex(fis);
+		logger.debug("md5 calculated for {} in {} miliseconds",localFile.getName(), System.currentTimeMillis()- start);
+		return md5Checksum;
 	}
 
 	private Property createMd5ChecksumProperty(java.io.File localFile) throws IOException {
 		Property property = new Property();
 		property.setKey(MD5_PROPERTY_NAME).setValue(md5Checksum(localFile)).setVisibility("PUBLIC");
 		return property;
+	}
+	
+	private void logExecutionTime(String action, long start){
+		logger.info("{} in {} sec", action, Duration.ofMillis(System.currentTimeMillis() - start).getSeconds());
 	}
 
 }
