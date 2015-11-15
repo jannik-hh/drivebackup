@@ -2,6 +2,9 @@ package drivebackup.local;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.logging.log4j.LogManager;
@@ -17,11 +20,6 @@ public interface LocalDirectory {
 	public Stream<File> getFiles() throws IOException;
 
 	public Stream<LocalDirectory> getSubDirectories() throws IOException;
-
-	public default Stream<String> getFileNames() throws IOException {
-		Stream<String> fileNames = getFiles().map(file -> file.getName());
-		return fileNames;
-	}
 
 	public default void backup(GDirectory gDir) throws IOException {
 		getFiles().parallel().forEach((file) -> {
@@ -43,6 +41,12 @@ public interface LocalDirectory {
 			}
 
 		});
+		Collection<String> childrenNames = Stream.concat(
+				getSubDirectories().map((subDir) -> subDir.getName()),
+				getFiles().map((file) -> file.getName())
+		).collect(Collectors.toCollection(TreeSet::new));
+		
+		gDir.deleteAllExceptOf(childrenNames);
 	}
 
 }
