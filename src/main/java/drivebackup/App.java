@@ -1,6 +1,5 @@
 package drivebackup;
 
-import java.io.File;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
@@ -28,14 +27,16 @@ import drivebackup.gdrive.DefaultGDirectory;
 import drivebackup.gdrive.DriveServiceFactory;
 import drivebackup.gdrive.GDirectory;
 import drivebackup.local.LocalDirectory;
-import drivebackup.local.SimpleLocalDirectory;
+import drivebackup.local.LocalDirectoryFactory;
 
 public class App {
 	private static final String TARGET_DIR_OPTION = "target";
 	private static final String SOURCE_DIR_OPTION = "source";
 	private static final String SECRET_KEY_OPTION = "secretKey";
 	private static final String ENCRYPTION_OPTION = "encrypt";
+	private static final String IGNORE_FILE_OPTION = "ignore";
 	private static final Logger logger = LogManager.getLogger("DriveBackup");
+	private static final LocalDirectoryFactory localDirectoryFactory = new LocalDirectoryFactory();
 
 	public static void main(String[] args) throws ParseException, IOException, NoSuchAlgorithmException {
 		try {
@@ -49,8 +50,7 @@ public class App {
 			} else {
 				encryptionService = new NoEncryptionService();
 			}
-			File sourceDir = new File(cmd.getOptionValue(SOURCE_DIR_OPTION));
-			LocalDirectory localDirectory = new SimpleLocalDirectory(sourceDir);
+			LocalDirectory localDirectory = localDirectoryFactory.getLocalDirectory(cmd.getOptionValue(SOURCE_DIR_OPTION), cmd.getOptionValue(IGNORE_FILE_OPTION));
 			Drive drive = DriveServiceFactory.getDriveService();
 			GDirectory gDir = DefaultGDirectory.fromPath(cmd.getOptionValue(TARGET_DIR_OPTION), drive,
 					encryptionService);
@@ -83,10 +83,14 @@ public class App {
 		Option secretKey = Option.builder(SECRET_KEY_OPTION)
 				.desc("Path to secret key. If not given, a secret key file will be created").hasArg(true)
 				.argName("secretKeyFile").build();
+		Option ignoreFile = Option.builder(IGNORE_FILE_OPTION)
+				.desc("Path to ignore file.").hasArg(true)
+				.argName("driveIgnoreFile").build();
 		options.addOption(srcDir);
 		options.addOption(targetDir);
 		options.addOption(encryptOption);
 		options.addOption(secretKey);
+		options.addOption(ignoreFile);
 		return options;
 
 	}

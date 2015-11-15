@@ -30,7 +30,7 @@ public class SimpleLocalDirectory implements LocalDirectory {
 		return getChildren().filter((file) -> file.isDirectory()).map((dir) -> new SimpleLocalDirectory(dir));
 	}
 
-	private Stream<File> getChildren() throws IOException {
+	protected Stream<File> getChildren() throws IOException {
 		return Files.list(directory.toPath()).map((path) -> path.toFile());
 	}
 }
