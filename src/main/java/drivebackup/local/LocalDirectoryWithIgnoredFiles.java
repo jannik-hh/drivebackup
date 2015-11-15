@@ -17,4 +17,10 @@ public class LocalDirectoryWithIgnoredFiles extends SimpleLocalDirectory{
 	public Stream<File> getChildren() throws IOException {
 		return super.getChildren().filter(fileNotIgnoredPredicate);
 	}
+	
+	@Override
+	public Stream<LocalDirectory> getSubDirectories() throws IOException {
+		return getChildren().filter((file) -> file.isDirectory()).map((dir) -> new LocalDirectoryWithIgnoredFiles(dir, fileNotIgnoredPredicate));
+	}
+
 }
