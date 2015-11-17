@@ -26,7 +26,7 @@ public class CreateAndFindDirectoryDefaultGDirectoryTest extends BaseGDirTest {
 		GDirectory createdDir = gDir.findOrCreateDirectory("ADIR");
 
 		GDirectory foundDir = gDir.findOrCreateDirectory("ADIR");
-
+		directoryExists(gDir.getID(), "ADIR");
 		assertEquals(createdDir.getID(), foundDir.getID());
 	}
 
@@ -35,6 +35,6 @@ public class CreateAndFindDirectoryDefaultGDirectoryTest extends BaseGDirTest {
 				"'%s' in parents and title = '%s' and mimeType = 'application/vnd.google-apps.folder' and trashed=false",
 				parentID, name);
 		FileList filelist = googleDrive.files().list().setQ(query).execute();
-		return filelist.getItems().size() != 0;
+		return filelist.getItems().size() == 1;
 	}
 }

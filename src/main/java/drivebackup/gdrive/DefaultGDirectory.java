@@ -16,21 +16,19 @@ import org.apache.logging.log4j.Logger;
 import com.google.api.client.http.AbstractInputStreamContent;
 import com.google.api.client.http.InputStreamContent;
 import com.google.api.services.drive.Drive;
-import com.google.api.services.drive.model.ChildList;
-import com.google.api.services.drive.model.ChildReference;
 import com.google.api.services.drive.model.File;
-import com.google.api.services.drive.model.FileList;
 import com.google.api.services.drive.model.ParentReference;
 import com.google.api.services.drive.model.Property;
 
 import drivebackup.encryption.EncryptionService;
 
 public class DefaultGDirectory implements GDirectory {
-	private final static String FIND_FOLDER_QUERY = "title = '%s' and mimeType = 'application/vnd.google-apps.folder' and trashed=false";
+	private static final String FOLDER_MIME_TYPE = "application/vnd.google-apps.folder";
 	private final static String MD5_PROPERTY_NAME = "orig_md5";
 	private static final Logger logger = LogManager.getLogger("DriveBackup");
 	private final Drive drive;
 	private final EncryptionService encryptionService;
+	private final List<File> files;
 
 	private final String parentID;
 
@@ -50,39 +48,45 @@ public class DefaultGDirectory implements GDirectory {
 		this.drive = drive;
 		this.parentID = parentID;
 		this.encryptionService = encryptionService;
+		try {
+			this.files = new FilesQuery(drive).getAllFilesOf(parentID);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Override
 	public File saveOrUpdateFile(java.io.File file) throws IOException {
 		String localFileName = file.getName();
 		String localFilePath = file.getPath();
-		File remoteFile = findFile(localFileName);
-		if (remoteFile == null) {
+		Optional<File> remoteFile = findFile(localFileName);
+		if (remoteFile.isPresent()) {
+			File existentRemoteFile = remoteFile.get();
+			if (needsUpdate(file, existentRemoteFile)) {
+				long start = System.currentTimeMillis();
+				File updatedFile = updateFile(existentRemoteFile, file);
+				logExecutionTime(String.format("%s updated", localFilePath), start);
+				return updatedFile;
+			} else {
+				logger.info("{} is up-to-date", localFilePath);
+				return existentRemoteFile;
+			}
+		} else{
 			long start = System.currentTimeMillis();
 			File savedFile = saveFile(file);
 			logExecutionTime(String.format("%s saved", localFilePath), start);
 			return savedFile;
-			
-		} else if (needsUpdate(file, remoteFile)) {
-			long start = System.currentTimeMillis();
-			File updatedFile = updateFile(remoteFile, file);
-			logExecutionTime(String.format("%s updated", localFilePath), start);
-			return updatedFile;
-		} else {
-			logger.info("{} is up-to-date", localFilePath);
-			return remoteFile;
 		}
-
 	}
 
 	@Override
 	public GDirectory findOrCreateDirectory(String name) throws IOException {
-		GDirectory directory = findDirectory(name);
-		if (directory == null) {
-			directory = createDirectory(name);
+		Optional<GDirectory> directory = findDirectory(name);
+		if(directory.isPresent()){
+			return directory.get();
+		}else{
+			return createDirectory(name);
 		}
-		return directory;
-
 	}
 
 	@Override
@@ -92,9 +96,7 @@ public class DefaultGDirectory implements GDirectory {
 
 	@Override
 	public void deleteAllExceptOf(Collection<String> fileAndDirectoryNames) throws IOException {
-		String query = String.format("'%s' in parents and trashed=false", parentID);
-		FileList fileList = drive.files().list().setQ(query).execute();
-		for (File file : fileList.getItems()) {
+		for (File file : files) {
 			String title = file.getTitle();
 			if (!fileAndDirectoryNames.contains(title)) {
 				drive.files().trash(file.getId()).execute();
@@ -104,16 +106,14 @@ public class DefaultGDirectory implements GDirectory {
 
 	}
 
-	private GDirectory findDirectory(String name) throws IOException {
-		String query = String.format(FIND_FOLDER_QUERY, name);
-		ChildList list = drive.children().list(parentID).setQ(query).execute();
-		List<ChildReference> items = list.getItems();
-		if (items != null && items.size() >= 1) {
-			String dirId = items.get(0).getId();
-			return new DefaultGDirectory(drive, dirId, encryptionService);
-		} else {
-			return null;
+	private Optional<GDirectory> findDirectory(String name) throws IOException {
+		if(name== null){
+			return Optional.empty();
 		}
+		Optional<File> dir= files.stream()
+			.filter((file) -> FOLDER_MIME_TYPE.equals(file.getMimeType()) && name.equals(file.getTitle()))
+			.findFirst();
+		return dir.map((file) -> new DefaultGDirectory(drive, file.getId(), encryptionService));
 	}
 
 	private GDirectory createDirectory(String name) throws IOException {
@@ -121,21 +121,18 @@ public class DefaultGDirectory implements GDirectory {
 		body.setTitle(name);
 		body.setMimeType("application/vnd.google-apps.folder");
 		body.setParents(Arrays.asList(new ParentReference().setId(parentID)));
-		com.google.api.services.drive.model.File newDir = drive.files().insert(body).execute();
+		File newDir = QueryExecutorWithRetry.executeWithRetry(drive.files().insert(body));
+		files.add(newDir);
 		return new DefaultGDirectory(drive, newDir.getId(), encryptionService);
 	}
 
-	private File findFile(String fileName) throws IOException {
-		String query = String.format(
-				"title = '%s' and mimeType != 'application/vnd.google-apps.folder' and trashed=false", fileName);
-		ChildList list = drive.children().list(parentID).setQ(query).execute();
-		List<ChildReference> items = list.getItems();
-		if (items != null && items.size() >= 1) {
-			String fileId = items.get(0).getId();
-			return drive.files().get(fileId).execute();
-		} else {
-			return null;
+	private Optional<File> findFile(String fileName) throws IOException {
+		if(fileName== null){
+			return Optional.empty();
 		}
+		return files.stream()
+			.filter((aFile) -> !FOLDER_MIME_TYPE.equals(aFile.getMimeType()) &&  fileName.equals(aFile.getTitle()))
+			.findFirst();
 	}
 
 	private File saveFile(java.io.File localFile) throws IOException {
@@ -144,13 +141,19 @@ public class DefaultGDirectory implements GDirectory {
 		body.setParents(Arrays.asList(new ParentReference().setId(parentID)));
 		body.setProperties(Arrays.asList(createMd5ChecksumProperty(localFile)));
 		AbstractInputStreamContent mediaContent = fileContent(localFile);
-		return drive.files().insert(body, mediaContent).execute();
+		File savedFile = QueryExecutorWithRetry.executeWithRetry(drive.files().insert(body, mediaContent));
+		files.add(savedFile);
+		return savedFile;
 	}
 
 	private File updateFile(File remoteFile, java.io.File localFile) throws IOException {
 		remoteFile.setProperties(Arrays.asList(createMd5ChecksumProperty(localFile)));
 		AbstractInputStreamContent mediaContent = fileContent(localFile);
-		return drive.files().update(remoteFile.getId(), remoteFile, mediaContent).execute();
+		File updatedRemoteFile =  QueryExecutorWithRetry.executeWithRetry(drive.files().update(remoteFile.getId(), remoteFile, mediaContent));
+		files.remove(remoteFile);
+		files.add(updatedRemoteFile);
+		
+		return updatedRemoteFile;
 	}
 
 	private AbstractInputStreamContent fileContent(java.io.File localFile) throws FileNotFoundException {
