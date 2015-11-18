@@ -173,10 +173,8 @@ public class DefaultGDirectory implements GDirectory {
 	}
 
 	private String md5Checksum(java.io.File localFile) throws IOException {
-		long start = System.currentTimeMillis();
 		FileInputStream fis = new FileInputStream(localFile);
 		String md5Checksum = org.apache.commons.codec.digest.DigestUtils.md5Hex(fis);
-		logger.debug("md5 calculated for {} in {} miliseconds",localFile.getName(), System.currentTimeMillis()- start);
 		return md5Checksum;
 	}
 
