@@ -99,7 +99,7 @@ public class DefaultGDirectory implements GDirectory {
 		for (File file : files) {
 			String title = file.getTitle();
 			if (!fileAndDirectoryNames.contains(title)) {
-				drive.files().trash(file.getId()).execute();
+				QueryExecutorWithRetry.executeWithRetry(drive.files().trash(file.getId()));
 				logger.info("{} trashed", title);
 			}
 		}
