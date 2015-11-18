@@ -25,16 +25,16 @@ public interface LocalDirectory {
 		getFiles().parallel().forEach((file) -> {
 			try {
 				gDir.saveOrUpdateFile(file);
-			} catch (Exception e) {
-				throw new RuntimeException(e);
+			} catch (IOException e) {
+				logger.warn("unable to save or update {}", file.getPath());
 			}
 		});
 		getSubDirectories().parallel().forEach((subDir) -> {
 			try {
 				GDirectory subGDir = gDir.findOrCreateDirectory(subDir.getName());
 				subDir.backup(subGDir);
-			} catch (Exception e) {
-				throw new RuntimeException(e);
+			} catch (IOException e) {
+				logger.warn("unable to backup {}", subDir.getName());
 			}
 
 		});

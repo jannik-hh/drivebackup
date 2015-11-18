@@ -2,9 +2,13 @@ package drivebackup.gdrive;
 
 import java.io.IOException;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.google.api.client.googleapis.services.AbstractGoogleClientRequest;
 
 class QueryExecutorWithRetry {
+	private static final Logger logger = LogManager.getLogger("DriveBackup");
 	private static final int NR_OF_RETRIES = 10;
 	
 	static <T> T executeWithRetry(AbstractGoogleClientRequest<T> request) throws IOException{
@@ -26,6 +30,7 @@ class QueryExecutorWithRetry {
 	
 	private static void sleep(int seconds){
 		try {
+			logger.info("retry communicate to google drive in {} seconds", seconds);
 			Thread.sleep(1000 * seconds);
 		} catch (InterruptedException e) {
 		}
