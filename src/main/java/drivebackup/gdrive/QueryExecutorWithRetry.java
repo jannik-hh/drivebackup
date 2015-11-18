@@ -5,7 +5,7 @@ import java.io.IOException;
 import com.google.api.client.googleapis.services.AbstractGoogleClientRequest;
 
 class QueryExecutorWithRetry {
-	private static final int NR_OF_RETRIES = 3;
+	private static final int NR_OF_RETRIES = 10;
 	
 	static <T> T executeWithRetry(AbstractGoogleClientRequest<T> request) throws IOException{
 		return executeWithRetry(request, 1);
@@ -16,7 +16,7 @@ class QueryExecutorWithRetry {
 			return request.execute();
 		}catch(IOException e){
 			if(retry_count <= NR_OF_RETRIES){
-				sleep(5 * retry_count);
+				sleep(10 * retry_count);
 				return executeWithRetry(request, retry_count + 1);
 			}else{
 				throw e;
