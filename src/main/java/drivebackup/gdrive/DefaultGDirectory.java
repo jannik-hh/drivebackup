@@ -3,7 +3,6 @@ package drivebackup.gdrive;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collection;
@@ -14,7 +13,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.google.api.client.http.AbstractInputStreamContent;
-import com.google.api.client.http.InputStreamContent;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.ParentReference;
@@ -157,8 +155,7 @@ public class DefaultGDirectory implements GDirectory {
 	}
 
 	private AbstractInputStreamContent fileContent(java.io.File localFile) throws FileNotFoundException {
-		InputStream encryptedFileContent = encryptionService.encrypt(new FileInputStream(localFile));
-		return new InputStreamContent(null, encryptedFileContent);
+		return new EncryptedFileContent(null, localFile, encryptionService);
 	}
 
 	private boolean needsUpdate(java.io.File localFile, File gFile) throws IOException {
