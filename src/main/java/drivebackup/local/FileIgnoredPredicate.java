@@ -11,17 +11,17 @@ import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
-public class FileNotIgnoredPredicate implements Predicate<File>{
+public class FileIgnoredPredicate implements Predicate<File>{
 	private final Collection<Pattern> pattern;
 	
-	public FileNotIgnoredPredicate(File ignoreFile) throws IOException{
+	public FileIgnoredPredicate(File ignoreFile) throws IOException{
 		pattern = patternsFromFile(ignoreFile);
 	}
 	
 	@Override
 	public boolean test(File t) {
 		String filename = t.getName();
-		return !getIgnorePatterns().anyMatch((pattern) -> pattern.matcher(filename).matches());
+		return getIgnorePatterns().anyMatch((pattern) -> pattern.matcher(filename).matches());
 	}
 	
 	private Stream<Pattern> getIgnorePatterns(){

@@ -4,13 +4,15 @@ import java.io.File;
 import java.io.IOException;
 import java.util.function.Predicate;
 
+import drivebackup.encryption.EncryptionService;
+
 public class LocalDirectoryFactory {
-	public LocalDirectory getLocalDirectory(String pathToDirectory,String pathToIgnoreFile) throws IOException{
+	public LocalDirectory getLocalDirectory(String pathToDirectory,String pathToIgnoreFile, EncryptionService encryptionService) throws IOException{
 		if(pathToIgnoreFile == null){
-			return new SimpleLocalDirectory(new File(pathToDirectory));
+			return new LocalDirectoryImpl(new File(pathToDirectory), encryptionService, (file) -> false);
 		}else{
-			Predicate<File> fileNotIgnoredPredicate = new FileNotIgnoredPredicate(new File(pathToIgnoreFile));
-			return new LocalDirectoryWithIgnoredFiles(new File(pathToDirectory), fileNotIgnoredPredicate);
+			Predicate<File> fileIgnoredPredicate = new FileIgnoredPredicate(new File(pathToIgnoreFile));
+			return new LocalDirectoryImpl(new File(pathToDirectory), encryptionService, fileIgnoredPredicate);
 		}
 	}
 }

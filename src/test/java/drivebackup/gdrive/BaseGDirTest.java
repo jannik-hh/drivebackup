@@ -19,7 +19,7 @@ public class BaseGDirTest {
 	@Before
 	public void before() throws IOException {
 		googleDrive = DriveServiceFactory.getDriveService();
-		gDir = DefaultGDirectory.fromPath(TEST_DIR, googleDrive, new NoEncryptionService());
+		gDir = DefaultGDirectory.fromPath(TEST_DIR, googleDrive);
 	}
 
 	@After
@@ -33,6 +33,6 @@ public class BaseGDirTest {
 	
 
 	protected LocalFile localFile(String path){
-		return new LocalFileImpl(new java.io.File(path));
+		return new LocalFileImpl(new java.io.File(path), new NoEncryptionService());
 	}
 }

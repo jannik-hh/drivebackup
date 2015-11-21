@@ -51,10 +51,9 @@ public class App {
 			} else {
 				encryptionService = new NoEncryptionService();
 			}
-			LocalDirectory localDirectory = localDirectoryFactory.getLocalDirectory(cmd.getOptionValue(SOURCE_DIR_OPTION), cmd.getOptionValue(IGNORE_FILE_OPTION));
+			LocalDirectory localDirectory = localDirectoryFactory.getLocalDirectory(cmd.getOptionValue(SOURCE_DIR_OPTION), cmd.getOptionValue(IGNORE_FILE_OPTION), encryptionService);
 			Drive drive = DriveServiceFactory.getDriveService(cmd.getOptionValue(DRIVE_CREDENTIALS_OPTIONS));
-			GDirectory gDir = DefaultGDirectory.fromPath(cmd.getOptionValue(TARGET_DIR_OPTION), drive,
-					encryptionService);
+			GDirectory gDir = DefaultGDirectory.fromPath(cmd.getOptionValue(TARGET_DIR_OPTION), drive);
 			logger.info("Backup started");
 			long start = System.currentTimeMillis();
 			localDirectory.backup(gDir);

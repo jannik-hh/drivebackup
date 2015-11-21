@@ -11,7 +11,6 @@ import org.apache.logging.log4j.Logger;
 
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.model.File;
-import drivebackup.encryption.EncryptionService;
 import drivebackup.gdrive.calls.CreateDirectoryCall;
 import drivebackup.gdrive.calls.GetFilesOfDirectoryCall;
 import drivebackup.gdrive.calls.SaveFileCall;
@@ -22,14 +21,13 @@ public class DefaultGDirectory implements GDirectory {
 	private static final String FOLDER_MIME_TYPE = "application/vnd.google-apps.folder";
 	private static final Logger logger = LogManager.getLogger("DriveBackup");
 	private final Drive drive;
-	private final EncryptionService encryptionService;
 	private final List<File> files;
 
 	private final String parentID;
 
-	public static GDirectory fromPath(String directoryPath, Drive drive, EncryptionService encryptionService)
+	public static GDirectory fromPath(String directoryPath, Drive drive)
 			throws IOException {
-		GDirectory gDirectory = new DefaultGDirectory(drive, "root", encryptionService);
+		GDirectory gDirectory = new DefaultGDirectory(drive, "root");
 		String[] subdirs = directoryPath.split("/");
 		for (String subdir : subdirs) {
 			if (!subdir.trim().isEmpty()) {
@@ -39,10 +37,9 @@ public class DefaultGDirectory implements GDirectory {
 		return gDirectory;
 	}
 
-	private DefaultGDirectory(Drive drive, String parentID, EncryptionService encryptionService) {
+	private DefaultGDirectory(Drive drive, String parentID) {
 		this.drive = drive;
 		this.parentID = parentID;
-		this.encryptionService = encryptionService;
 		try {
 			this.files = QueryExecutorWithRetry.executeWithRetry(new GetFilesOfDirectoryCall(parentID, drive));
 		} catch (IOException e) {
@@ -110,13 +107,13 @@ public class DefaultGDirectory implements GDirectory {
 		Optional<File> dir= files.stream()
 			.filter((file) -> FOLDER_MIME_TYPE.equals(file.getMimeType()) && name.equals(file.getTitle()))
 			.findFirst();
-		return dir.map((file) -> new DefaultGDirectory(drive, file.getId(), encryptionService));
+		return dir.map((file) -> new DefaultGDirectory(drive, file.getId()));
 	}
 
 	private GDirectory createDirectory(String name) throws IOException {
 		File newDir = QueryExecutorWithRetry.executeWithRetry(new CreateDirectoryCall(name, parentID, drive));
 		files.add(newDir);
-		return new DefaultGDirectory(drive, newDir.getId(), encryptionService);
+		return new DefaultGDirectory(drive, newDir.getId());
 	}
 
 	private Optional<File> findFile(String fileName) throws IOException {
@@ -129,14 +126,14 @@ public class DefaultGDirectory implements GDirectory {
 	}
 
 	private File saveFile(LocalFile localFile) throws IOException {
-		File savedFile = QueryExecutorWithRetry.executeWithRetry(new SaveFileCall(localFile, parentID, drive, encryptionService));
+		File savedFile = QueryExecutorWithRetry.executeWithRetry(new SaveFileCall(localFile, parentID, drive));
 		files.add(savedFile);
 		return savedFile;
 	}
 
 	private File updateFile(File remoteFile, LocalFile localFile) throws IOException {
 		File updatedRemoteFile =  QueryExecutorWithRetry.executeWithRetry(
-			new UpdateFileCall(localFile, remoteFile, drive, encryptionService)
+			new UpdateFileCall(localFile, remoteFile, drive)
 		);
 		files.remove(remoteFile);
 		files.add(updatedRemoteFile);

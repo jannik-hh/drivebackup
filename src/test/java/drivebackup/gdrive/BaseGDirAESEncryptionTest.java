@@ -26,7 +26,7 @@ public class BaseGDirAESEncryptionTest {
 	public void before() throws IOException, NoSuchAlgorithmException {
 		googleDrive = DriveServiceFactory.getDriveService();
 		encryptionService = new AESEncryptionService(generateSecretKey());
-		gDir = DefaultGDirectory.fromPath(TEST_DIR, googleDrive, encryptionService);
+		gDir = DefaultGDirectory.fromPath(TEST_DIR, googleDrive);
 	}
 
 	@After
@@ -45,7 +45,7 @@ public class BaseGDirAESEncryptionTest {
 	}
 	
 	protected LocalFile localFile(String path){
-		return new LocalFileImpl(new java.io.File(path));
+		return new LocalFileImpl(new java.io.File(path), encryptionService);
 	}
 
 }

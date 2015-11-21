@@ -6,12 +6,16 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 
+import drivebackup.encryption.EncryptionService;
+
 public class LocalFileImpl implements LocalFile {
 	private final File file;
+	private final EncryptionService encryptionService;
 	private String md5Checksum;
 	
-	public LocalFileImpl(File file){
+	public LocalFileImpl(File file, EncryptionService encryptionService){
 		this.file= file;
+		this.encryptionService = encryptionService;
 	}
 	@Override
 	public String getName() {
@@ -25,7 +29,7 @@ public class LocalFileImpl implements LocalFile {
 
 	@Override
 	public InputStream getInputStream() throws FileNotFoundException  {
-		return new FileInputStream(file);
+		return encryptionService.encrypt(new FileInputStream(file));
 	}
 
 	@Override
@@ -37,7 +41,7 @@ public class LocalFileImpl implements LocalFile {
 	}
 	
 	private String calculateMd5Checksum() throws IOException {
-		InputStream inputStream = getInputStream();
+		InputStream inputStream = new FileInputStream(file);
 		return org.apache.commons.codec.digest.DigestUtils.md5Hex(inputStream);
 	}
 }
