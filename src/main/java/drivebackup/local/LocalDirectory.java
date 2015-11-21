@@ -1,6 +1,5 @@
 package drivebackup.local;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.TreeSet;
@@ -17,7 +16,7 @@ public interface LocalDirectory {
 
 	public String getName();
 
-	public Stream<File> getFiles() throws IOException;
+	public Stream<LocalFile> getFiles() throws IOException;
 
 	public Stream<LocalDirectory> getSubDirectories() throws IOException;
 

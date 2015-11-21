@@ -1,6 +1,5 @@
 package drivebackup.gdrive;
 
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.time.Duration;
@@ -19,6 +18,7 @@ import com.google.api.services.drive.model.ParentReference;
 import com.google.api.services.drive.model.Property;
 
 import drivebackup.encryption.EncryptionService;
+import drivebackup.local.LocalFile;
 
 public class DefaultGDirectory implements GDirectory {
 	private static final String FOLDER_MIME_TYPE = "application/vnd.google-apps.folder";
@@ -54,7 +54,7 @@ public class DefaultGDirectory implements GDirectory {
 	}
 
 	@Override
-	public File saveOrUpdateFile(java.io.File file) throws IOException {
+	public File saveOrUpdateFile(LocalFile file) throws IOException {
 		String localFileName = file.getName();
 		String localFilePath = file.getPath();
 		Optional<File> remoteFile = findFile(localFileName);
@@ -133,7 +133,7 @@ public class DefaultGDirectory implements GDirectory {
 			.findFirst();
 	}
 
-	private File saveFile(java.io.File localFile) throws IOException {
+	private File saveFile(LocalFile localFile) throws IOException {
 		File body = new File();
 		body.setTitle(localFile.getName());
 		body.setParents(Arrays.asList(new ParentReference().setId(parentID)));
@@ -144,7 +144,7 @@ public class DefaultGDirectory implements GDirectory {
 		return savedFile;
 	}
 
-	private File updateFile(File remoteFile, java.io.File localFile) throws IOException {
+	private File updateFile(File remoteFile, LocalFile localFile) throws IOException {
 		remoteFile.setProperties(Arrays.asList(createMd5ChecksumProperty(localFile)));
 		AbstractInputStreamContent mediaContent = fileContent(localFile);
 		File updatedRemoteFile =  QueryExecutorWithRetry.executeWithRetry(drive.files().update(remoteFile.getId(), remoteFile, mediaContent));
@@ -154,30 +154,24 @@ public class DefaultGDirectory implements GDirectory {
 		return updatedRemoteFile;
 	}
 
-	private AbstractInputStreamContent fileContent(java.io.File localFile) throws FileNotFoundException {
+	private AbstractInputStreamContent fileContent(LocalFile localFile) throws FileNotFoundException {
 		return new EncryptedFileContent(null, localFile, encryptionService);
 	}
 
-	private boolean needsUpdate(java.io.File localFile, File gFile) throws IOException {
+	private boolean needsUpdate(LocalFile localFile, File gFile) throws IOException {
 		Optional<Property> optional = gFile.getProperties().stream()
 				.filter((property) -> property.getKey().equals(MD5_PROPERTY_NAME)).findFirst();
 		if (optional.isPresent()) {
 			Property md5Property = optional.get();
-			return !md5Property.getValue().equals(md5Checksum(localFile));
+			return !md5Property.getValue().equals(localFile.getOriginMd5Checksum());
 		} else {
 			return true;
 		}
 	}
 
-	private String md5Checksum(java.io.File localFile) throws IOException {
-		FileInputStream fis = new FileInputStream(localFile);
-		String md5Checksum = org.apache.commons.codec.digest.DigestUtils.md5Hex(fis);
-		return md5Checksum;
-	}
-
-	private Property createMd5ChecksumProperty(java.io.File localFile) throws IOException {
+	private Property createMd5ChecksumProperty(LocalFile localFile) throws IOException {
 		Property property = new Property();
-		property.setKey(MD5_PROPERTY_NAME).setValue(md5Checksum(localFile)).setVisibility("PUBLIC");
+		property.setKey(MD5_PROPERTY_NAME).setValue(localFile.getOriginMd5Checksum()).setVisibility("PUBLIC");
 		return property;
 	}
 	

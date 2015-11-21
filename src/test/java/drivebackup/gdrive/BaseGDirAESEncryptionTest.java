@@ -13,6 +13,8 @@ import com.google.api.services.drive.Drive;
 
 import drivebackup.encryption.AESEncryptionService;
 import drivebackup.encryption.EncryptionService;
+import drivebackup.local.LocalFile;
+import drivebackup.local.LocalFileImpl;
 
 public class BaseGDirAESEncryptionTest {
 	private final static String TEST_DIR = "DriveBackupTest";
@@ -40,6 +42,10 @@ public class BaseGDirAESEncryptionTest {
 		KeyGenerator kg = KeyGenerator.getInstance("AES");
 		kg.init(128);
 		return kg.generateKey();
+	}
+	
+	protected LocalFile localFile(String path){
+		return new LocalFileImpl(new java.io.File(path));
 	}
 
 }

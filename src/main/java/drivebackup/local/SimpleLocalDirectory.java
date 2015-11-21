@@ -21,8 +21,8 @@ public class SimpleLocalDirectory implements LocalDirectory {
 	}
 
 	@Override
-	public Stream<File> getFiles() throws IOException {
-		return getChildren().filter((file) -> file.isFile());
+	public Stream<LocalFile> getFiles() throws IOException {
+		return getChildren().filter((file) -> file.isFile()).map((file) -> new LocalFileImpl(file));
 	}
 
 	@Override

@@ -8,6 +8,8 @@ import org.junit.Before;
 import com.google.api.services.drive.Drive;
 
 import drivebackup.encryption.NoEncryptionService;
+import drivebackup.local.LocalFile;
+import drivebackup.local.LocalFileImpl;
 
 public class BaseGDirTest {
 	private final static String TEST_DIR = "DriveBackupTest";
@@ -27,5 +29,10 @@ public class BaseGDirTest {
 
 	protected void deleteGDirectory(GDirectory gDir, Drive drive) throws IOException {
 		drive.files().delete(gDir.getID()).execute();
+	}
+	
+
+	protected LocalFile localFile(String path){
+		return new LocalFileImpl(new java.io.File(path));
 	}
 }

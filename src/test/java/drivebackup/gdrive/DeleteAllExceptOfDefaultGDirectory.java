@@ -16,8 +16,8 @@ public class DeleteAllExceptOfDefaultGDirectory extends BaseGDirTest {
 	public void deleteAllExceptOfTest() throws IOException {
 		GDirectory dir1 = gDir.findOrCreateDirectory("Dir A");
 		GDirectory dir2 = gDir.findOrCreateDirectory("Dir B");
-		File file1 = gDir.saveOrUpdateFile(new java.io.File("./src/test/resources/test.txt"));
-		File file2 = gDir.saveOrUpdateFile(new java.io.File("./src/test/resources/test2.txt"));
+		File file1 = gDir.saveOrUpdateFile(localFile("./src/test/resources/test.txt"));
+		File file2 = gDir.saveOrUpdateFile(localFile("./src/test/resources/test2.txt"));
 
 		gDir.deleteAllExceptOf(Arrays.asList("test.txt", "Dir B"));
 

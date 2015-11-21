@@ -26,12 +26,12 @@ public class SimpleLocalDirectoryTest {
 		File dir = new File("./src/test/resources/folder");
 		SimpleLocalDirectory simpleLocalDirectory = new SimpleLocalDirectory(dir);
 
-		Stream<File> files = simpleLocalDirectory.getFiles();
+		Stream<LocalFile> files = simpleLocalDirectory.getFiles();
 
-		File file_1 = new File("./src/test/resources/folder/file_1.txt");
-		File file_2 = new File("./src/test/resources/folder/file_2.txt");
+		String file_1_path = new File("./src/test/resources/folder/file_1.txt").getPath();
+		String file_2_path = new File("./src/test/resources/folder/file_2.txt").getPath();
 
-		assertThat(files.collect(Collectors.toList()), contains(file_1, file_2));
+		assertThat(files.map((localFile)-> localFile.getPath()).collect(Collectors.toList()), contains(file_1_path, file_2_path));
 	}
 
 	@Test

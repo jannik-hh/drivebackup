@@ -30,11 +30,11 @@ public class LocalDirectoryWithIgnoredFilesTest {
 		LocalDirectoryWithIgnoredFiles localDirectory = 
 				new LocalDirectoryWithIgnoredFiles(dir,fileNotIgnoredPredicate);
 
-		Stream<File> files = localDirectory.getFiles();
+		Stream<LocalFile> files = localDirectory.getFiles();
 
 		File file_1 = new File("./src/test/resources/folder/file_1.txt");
 
-		assertThat(files.collect(Collectors.toList()), contains(file_1));
+		assertThat(files.map((localFile)-> localFile.getPath()).collect(Collectors.toList()), contains(file_1.getPath()));
 	}
 
 	@Test

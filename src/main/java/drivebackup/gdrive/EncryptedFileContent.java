@@ -5,18 +5,17 @@ import com.google.api.client.http.AbstractInputStreamContent;
 import com.google.api.client.util.Preconditions;
 
 import drivebackup.encryption.EncryptionService;
+import drivebackup.local.LocalFile;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 
 public final class EncryptedFileContent extends AbstractInputStreamContent {
 
-  private final File file;
+  private final LocalFile file;
   private final EncryptionService encryptionService;
 
-  public EncryptedFileContent(String type, File file, EncryptionService encryptionService) {
+  public EncryptedFileContent(String type, LocalFile file, EncryptionService encryptionService) {
     super(type);
     this.file = Preconditions.checkNotNull(file);
     this.encryptionService = encryptionService;
@@ -32,7 +31,7 @@ public final class EncryptedFileContent extends AbstractInputStreamContent {
 
   @Override
   public InputStream getInputStream() throws FileNotFoundException {
-    return encryptionService.encrypt(new FileInputStream(file));
+    return encryptionService.encrypt(file.getInputStream());
   }
 
   @Override
