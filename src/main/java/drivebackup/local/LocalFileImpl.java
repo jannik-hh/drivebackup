@@ -9,6 +9,7 @@ import java.io.InputStream;
 public class LocalFileImpl implements LocalFile {
 	private final File file;
 	private String md5Checksum;
+	
 	public LocalFileImpl(File file){
 		this.file= file;
 	}

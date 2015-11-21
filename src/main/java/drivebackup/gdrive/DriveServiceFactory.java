@@ -34,7 +34,8 @@ public class DriveServiceFactory {
 	private static HttpTransport HTTP_TRANSPORT;
 
 	private static final List<String> SCOPES = Arrays.asList(DriveScopes.DRIVE);
-
+	
+	private static Drive drive;
 	static {
 		try {
 			HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
@@ -75,8 +76,11 @@ public class DriveServiceFactory {
 	 * @throws IOException
 	 */
 	public static Drive getDriveService(String pathToDataStoreDir) throws IOException {
-		Credential credential = authorize(pathToDataStoreDir);
-		return new Drive.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential).setApplicationName(APPLICATION_NAME).build();
+		if(drive == null){
+			Credential credential = authorize(pathToDataStoreDir);
+			drive = new Drive.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential).setApplicationName(APPLICATION_NAME).build();
+		}
+		return drive;	
 	}
 	
 	public static Drive getDriveService() throws IOException{

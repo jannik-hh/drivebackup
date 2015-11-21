@@ -1,4 +1,4 @@
-package drivebackup.gdrive;
+package drivebackup.gdrive.calls;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -9,14 +9,21 @@ import com.google.api.services.drive.Drive.Files;
 import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.FileList;
 
-class FilesQuery {
+import drivebackup.gdrive.QueryExecutorWithRetry;
+
+public class GetFilesOfDirectoryCall implements IOCallable<List<File>> {
 	private final Drive drive;
-	FilesQuery(Drive drive){
+	private final String parentDirectoryID;
+	
+	public GetFilesOfDirectoryCall(String parenDirectoryID, Drive drive){
 		this.drive = drive;
+		this.parentDirectoryID = parenDirectoryID;
+		
 	}
 
-	List<File> getAllFilesOf(String parenDirectoryID) throws IOException {
-		String query = String.format("'%s' in parents and trashed=false", parenDirectoryID);
+	@Override
+	public List<File> call() throws IOException {
+		String query = String.format("'%s' in parents and trashed=false", parentDirectoryID);
 	    List<File> result = new ArrayList<File>();
 	    Files.List request = drive.files().list().setQ(query);
 	    do {
@@ -27,6 +34,6 @@ class FilesQuery {
 	             request.getPageToken().length() > 0);
 
 	    return result;
-	  }
+	}
 
 }
