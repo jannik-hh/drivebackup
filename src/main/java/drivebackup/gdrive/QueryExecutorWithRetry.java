@@ -5,19 +5,17 @@ import java.io.IOException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.google.api.client.googleapis.services.AbstractGoogleClientRequest;
-
 class QueryExecutorWithRetry {
 	private static final Logger logger = LogManager.getLogger("DriveBackup");
 	private static final int NR_OF_RETRIES = 10;
 	
-	static <T> T executeWithRetry(AbstractGoogleClientRequest<T> request) throws IOException{
+	static <T> T executeWithRetry(IOCallable<T> request) throws IOException{
 		return executeWithRetry(request, 1);
 	}
 	
-	private static <T> T executeWithRetry(AbstractGoogleClientRequest<T> request, int retry_count) throws IOException{
+	private static <T> T executeWithRetry(IOCallable<T> request, int retry_count) throws IOException{
 		try{
-			return request.execute();
+			return request.call();
 		}catch(IOException e){
 			if(retry_count <= NR_OF_RETRIES){
 				sleep(10 * retry_count);

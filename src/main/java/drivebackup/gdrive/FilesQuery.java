@@ -19,9 +19,8 @@ class FilesQuery {
 		String query = String.format("'%s' in parents and trashed=false", parenDirectoryID);
 	    List<File> result = new ArrayList<File>();
 	    Files.List request = drive.files().list().setQ(query);
-
 	    do {
-	        FileList files = QueryExecutorWithRetry.executeWithRetry(request);
+	        FileList files = QueryExecutorWithRetry.executeWithRetry(()-> request.execute());
 	        result.addAll(files.getItems());
 	        request.setPageToken(files.getNextPageToken());
 	    } while (request.getPageToken() != null &&

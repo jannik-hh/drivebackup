@@ -97,7 +97,9 @@ public class DefaultGDirectory implements GDirectory {
 		for (File file : files) {
 			String title = file.getTitle();
 			if (!fileAndDirectoryNames.contains(title)) {
-				QueryExecutorWithRetry.executeWithRetry(drive.files().trash(file.getId()));
+				QueryExecutorWithRetry.executeWithRetry(
+						()->drive.files().trash(file.getId()).execute()
+				);
 				logger.info("{} trashed", title);
 			}
 		}
@@ -115,11 +117,13 @@ public class DefaultGDirectory implements GDirectory {
 	}
 
 	private GDirectory createDirectory(String name) throws IOException {
-		File body = new File();
-		body.setTitle(name);
-		body.setMimeType("application/vnd.google-apps.folder");
-		body.setParents(Arrays.asList(new ParentReference().setId(parentID)));
-		File newDir = QueryExecutorWithRetry.executeWithRetry(drive.files().insert(body));
+		File newDir = QueryExecutorWithRetry.executeWithRetry( ()->{
+			File body = new File();
+			body.setTitle(name);
+			body.setMimeType("application/vnd.google-apps.folder");
+			body.setParents(Arrays.asList(new ParentReference().setId(parentID)));
+			return drive.files().insert(body).execute();
+		});
 		files.add(newDir);
 		return new DefaultGDirectory(drive, newDir.getId(), encryptionService);
 	}
@@ -134,20 +138,24 @@ public class DefaultGDirectory implements GDirectory {
 	}
 
 	private File saveFile(LocalFile localFile) throws IOException {
-		File body = new File();
-		body.setTitle(localFile.getName());
-		body.setParents(Arrays.asList(new ParentReference().setId(parentID)));
-		body.setProperties(Arrays.asList(createMd5ChecksumProperty(localFile)));
-		AbstractInputStreamContent mediaContent = fileContent(localFile);
-		File savedFile = QueryExecutorWithRetry.executeWithRetry(drive.files().insert(body, mediaContent));
+		File savedFile = QueryExecutorWithRetry.executeWithRetry(()->{
+			File body = new File();
+			body.setTitle(localFile.getName());
+			body.setParents(Arrays.asList(new ParentReference().setId(parentID)));
+			body.setProperties(Arrays.asList(createMd5ChecksumProperty(localFile)));
+			AbstractInputStreamContent mediaContent = fileContent(localFile);
+			return drive.files().insert(body, mediaContent).execute();
+		});
 		files.add(savedFile);
 		return savedFile;
 	}
 
 	private File updateFile(File remoteFile, LocalFile localFile) throws IOException {
 		remoteFile.setProperties(Arrays.asList(createMd5ChecksumProperty(localFile)));
-		AbstractInputStreamContent mediaContent = fileContent(localFile);
-		File updatedRemoteFile =  QueryExecutorWithRetry.executeWithRetry(drive.files().update(remoteFile.getId(), remoteFile, mediaContent));
+		File updatedRemoteFile =  QueryExecutorWithRetry.executeWithRetry(()->{
+			AbstractInputStreamContent mediaContent = fileContent(localFile);
+			return drive.files().update(remoteFile.getId(), remoteFile, mediaContent).execute();
+		});
 		files.remove(remoteFile);
 		files.add(updatedRemoteFile);
 		
