@@ -1,7 +1,6 @@
 package drivebackup.gdrive;
 
 import java.io.IOException;
-import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -11,7 +10,10 @@ import org.apache.logging.log4j.Logger;
 
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.model.File;
+
+import drivebackup.gdrive.calls.CopyFileCall;
 import drivebackup.gdrive.calls.CreateDirectoryCall;
+import drivebackup.gdrive.calls.FindFileByOriginMD5Checksum;
 import drivebackup.gdrive.calls.GetFilesOfDirectoryCall;
 import drivebackup.gdrive.calls.SaveFileCall;
 import drivebackup.gdrive.calls.UpdateFileCall;
@@ -49,25 +51,17 @@ public class DefaultGDirectory implements GDirectory {
 
 	@Override
 	public File saveOrUpdateFile(LocalFile file) throws IOException {
-		String localFileName = file.getName();
-		String localFilePath = file.getPath();
-		Optional<File> remoteFile = findFile(localFileName);
+		Optional<File> remoteFile = findFile(file.getName());
 		if (remoteFile.isPresent()) {
 			File existentRemoteFile = remoteFile.get();
 			if (needsUpdate(file, existentRemoteFile)) {
-				long start = System.currentTimeMillis();
-				File updatedFile = updateFile(existentRemoteFile, file);
-				logExecutionTime(String.format("%s updated", localFilePath), start);
-				return updatedFile;
+				return updateFile(existentRemoteFile, file);
 			} else {
-				logger.info("{} is up-to-date", localFilePath);
+				logger.info("{} is up-to-date", file.getPath());
 				return existentRemoteFile;
 			}
 		} else{
-			long start = System.currentTimeMillis();
-			File savedFile = saveFile(file);
-			logExecutionTime(String.format("%s saved", localFilePath), start);
-			return savedFile;
+			return saveFile(file);
 		}
 	}
 
@@ -126,14 +120,28 @@ public class DefaultGDirectory implements GDirectory {
 	}
 
 	private File saveFile(LocalFile localFile) throws IOException {
-		File savedFile = QueryExecutorWithRetry.executeWithRetry(new SaveFileCall(localFile, parentID, drive));
+		File fileWithSameMD5 = QueryExecutorWithRetry.executeWithRetry(new FindFileByOriginMD5Checksum(localFile.getOriginMd5Checksum(), drive));
+		File savedFile;
+		if(fileWithSameMD5 != null){
+			savedFile = QueryExecutorWithRetry.executeWithRetryAndLogTime(
+				new CopyFileCall(fileWithSameMD5, parentID, localFile.getName(), drive),
+				String.format("%s saved by copying", localFile.getPath())
+			);
+		}else{
+			savedFile = QueryExecutorWithRetry.executeWithRetryAndLogTime(
+				new SaveFileCall(localFile, parentID, drive),
+				String.format("%s saved", localFile.getPath())
+			);	
+		}
+		
 		files.add(savedFile);
 		return savedFile;
 	}
 
 	private File updateFile(File remoteFile, LocalFile localFile) throws IOException {
-		File updatedRemoteFile =  QueryExecutorWithRetry.executeWithRetry(
-			new UpdateFileCall(localFile, remoteFile, drive)
+		File updatedRemoteFile =  QueryExecutorWithRetry.executeWithRetryAndLogTime(
+			new UpdateFileCall(localFile, remoteFile, drive),
+			String.format("%s updated", localFile.getPath())
 		);
 		files.remove(remoteFile);
 		files.add(updatedRemoteFile);
@@ -151,9 +159,4 @@ public class DefaultGDirectory implements GDirectory {
 			return true;
 		}
 	}
-	
-	private void logExecutionTime(String action, long start){
-		logger.info("{} in {} sec", action, Duration.ofMillis(System.currentTimeMillis() - start).getSeconds());
-	}
-
 }
