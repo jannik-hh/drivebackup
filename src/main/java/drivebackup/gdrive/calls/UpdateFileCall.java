@@ -25,7 +25,7 @@ public class UpdateFileCall implements IOCallable<File>{
 	public File call() throws IOException {
 		OriginMD5ChecksumAccessor md5ChecksumAccessor = new OriginMD5ChecksumAccessor(fileToUpdate);
 		md5ChecksumAccessor.set(localFile.getOriginMd5Checksum());
-		AbstractInputStreamContent mediaContent = new InputStreamContent(null, localFile.getInputStream());
+		AbstractInputStreamContent mediaContent = new InputStreamContent(null, localFile.getEncryptedInputStream());
 		return drive.files().update(fileToUpdate.getId(), fileToUpdate, mediaContent).execute();
 	}
 	

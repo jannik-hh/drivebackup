@@ -45,7 +45,7 @@ public class AESSecretKeyProvider {
 		}
 	}
 
-	private static SecretKey getSecretKey(File file) throws FileNotFoundException, IOException {
+	public static SecretKey getSecretKey(File file) throws FileNotFoundException, IOException {
 		try (FileInputStream inputStream = new FileInputStream(file)) {
 			byte[] raw_key = IOUtils.toByteArray(inputStream);
 			SecretKeySpec skspec = new SecretKeySpec(raw_key, "AES");

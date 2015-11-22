@@ -1,11 +1,15 @@
 package drivebackup.local;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -43,6 +47,29 @@ public interface LocalDirectory {
 		).collect(Collectors.toCollection(TreeSet::new));
 		
 		gDir.deleteAllExceptOf(childrenNames);
+	}
+	
+	public default void decrypt(File targetDir) throws IOException{
+		targetDir.mkdirs();
+		getFiles().forEach((localFile) -> {
+			try{
+				File newFile = new File(Paths.get(targetDir.getPath(), localFile.getName()).toString());
+				try (FileOutputStream fileOutputStream = new FileOutputStream(newFile);) {
+					IOUtils.copy(localFile.getDecryptedInputStream(), fileOutputStream);
+				}
+				logger.info("file encrypted to {}", newFile.getPath());
+			}catch(IOException e){
+				logger.error(e);
+			}
+		});
+		getSubDirectories().forEach((subDir) ->{
+			File newSubDir = new File(Paths.get(targetDir.getPath(), subDir.getName()).toString());
+			try{
+				subDir.decrypt(newSubDir);
+			}catch(IOException e){
+				logger.error(e);
+			}
+		});
 	}
 
 }

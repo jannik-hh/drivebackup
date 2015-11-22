@@ -18,7 +18,7 @@ public class AppTest {
 	
 	@Test
 	public void testDefault() throws NoSuchAlgorithmException, ParseException, IOException{
-		String[] args = new String[]{"-source", "./src/test/resources/folder","-target", TEST_DIR};
+		String[] args = new String[]{"backup", "-source", "./src/test/resources/folder","-target", TEST_DIR};
 		App.main(args);
 	}
 

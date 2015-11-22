@@ -1,5 +1,6 @@
 package drivebackup;
 
+import java.io.File;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
@@ -40,9 +41,21 @@ public class App {
 	private static final LocalDirectoryFactory localDirectoryFactory = new LocalDirectoryFactory();
 
 	public static void main(String[] args) throws ParseException, IOException, NoSuchAlgorithmException {
+		if(args == null || args.length == 0){
+			System.out.println("select an option: backup or decrypt");
+		}else if(args[0].equals("backup")){
+			backup(args);
+		}else if(args[0].equals("decrypt")){
+			decrypt(args);
+		}else{
+			System.out.println("select an option: backup or decrypt");
+		}
+	}
+	
+	private static void backup(String[] args) throws ParseException, IOException, NoSuchAlgorithmException{
 		try {
 			CommandLineParser parser = new DefaultParser();
-			CommandLine cmd = parser.parse(cmdOptions(), args);
+			CommandLine cmd = parser.parse(cmdBackupOptions(), args);
 			EncryptionService encryptionService;
 			if (cmd.hasOption(ENCRYPTION_OPTION)) {
 				String path = cmd.getOptionValue(SECRET_KEY_OPTION);
@@ -63,16 +76,39 @@ public class App {
 
 		} catch (MissingOptionException e) {
 			System.out.println(e.getLocalizedMessage());
-			printHelp();
+			printHelp(cmdBackupOptions());
+		}
+	}
+	
+	private static void decrypt(String[] args) throws ParseException, IOException, NoSuchAlgorithmException{
+		try {
+			CommandLineParser parser = new DefaultParser();
+			CommandLine cmd = parser.parse(cmdDecryptOptions(), args);
+			
+			String path = cmd.getOptionValue(SECRET_KEY_OPTION);
+			SecretKey secretKey = AESSecretKeyProvider.getSecretKey(new File(path));
+			EncryptionService encryptionService = new AESEncryptionService(secretKey);
+			LocalDirectory localDirectory = localDirectoryFactory.getLocalDirectory(cmd.getOptionValue(SOURCE_DIR_OPTION), null, encryptionService);
+			
+			logger.info("Decryption started");
+			long start = System.currentTimeMillis();
+			localDirectory.decrypt(new File(cmd.getOptionValue(TARGET_DIR_OPTION)));
+			long end = System.currentTimeMillis();
+			Duration duration = Duration.ofMillis(end - start);
+			logger.info("Decryption finished in {}", duration);
+
+		} catch (MissingOptionException e) {
+			System.out.println(e.getLocalizedMessage());
+			printHelp(cmdDecryptOptions());
 		}
 	}
 
-	private static void printHelp() {
+	private static void printHelp(Options options) {
 		HelpFormatter formatter = new HelpFormatter();
-		formatter.printHelp("drivebackup", cmdOptions());
+		formatter.printHelp("drivebackup", cmdBackupOptions());
 	}
 
-	private static Options cmdOptions() {
+	private static Options cmdBackupOptions() {
 		Options options = new Options();
 		Option srcDir = Option.builder(SOURCE_DIR_OPTION).desc("local Directory to backup").hasArg(true)
 				.argName("sourceDir").required().build();
@@ -96,6 +132,20 @@ public class App {
 		options.addOption(ignoreFile);
 		options.addOption(driveCredentials);
 		return options;
-
+	}
+	
+	private static Options cmdDecryptOptions(){
+		Options options = new Options();
+		Option srcDir = Option.builder(SOURCE_DIR_OPTION).desc("local Directory to decrypt from").hasArg(true)
+				.argName("sourceDir").required().build();
+		Option targetDir = Option.builder(TARGET_DIR_OPTION).desc("local Directory to decrypt to").hasArg(true)
+				.argName("targetDir").required().build();
+		Option secretKey = Option.builder(SECRET_KEY_OPTION)
+				.desc("Path to secret key").hasArg(true).
+				required().argName("secretKeyFile").build();
+		options.addOption(srcDir);
+		options.addOption(targetDir);
+		options.addOption(secretKey);
+		return options;
 	}
 }

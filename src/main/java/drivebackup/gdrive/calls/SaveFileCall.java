@@ -31,7 +31,7 @@ public class SaveFileCall implements IOCallable<File> {
 		OriginMD5ChecksumAccessor md5ChecksumAccessor = new OriginMD5ChecksumAccessor(body);
 		md5ChecksumAccessor.set(localFile.getOriginMd5Checksum());
 		
-		AbstractInputStreamContent mediaContent = new InputStreamContent(null, localFile.getInputStream());
+		AbstractInputStreamContent mediaContent = new InputStreamContent(null, localFile.getEncryptedInputStream());
 		return drive.files().insert(body, mediaContent).execute();
 	}
 

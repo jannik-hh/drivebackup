@@ -28,8 +28,12 @@ public class LocalFileImpl implements LocalFile {
 	}
 
 	@Override
-	public InputStream getInputStream() throws FileNotFoundException  {
+	public InputStream getEncryptedInputStream() throws FileNotFoundException  {
 		return encryptionService.encrypt(new FileInputStream(file));
+	}
+	
+	public InputStream getDecryptedInputStream() throws FileNotFoundException {
+		return encryptionService.decrypt(new FileInputStream(file));
 	}
 
 	@Override

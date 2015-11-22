@@ -7,6 +7,7 @@ import java.io.InputStream;
 public interface LocalFile {
 	public String getName();
 	public String getPath();
-	public InputStream getInputStream() throws FileNotFoundException ;
+	public InputStream getEncryptedInputStream() throws FileNotFoundException ;
+	public InputStream getDecryptedInputStream() throws FileNotFoundException ;
 	public String getOriginMd5Checksum() throws IOException ;
 }
