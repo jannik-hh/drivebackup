@@ -13,21 +13,22 @@ import java.util.stream.Stream;
 import org.junit.Test;
 
 import drivebackup.encryption.NoEncryptionService;
+import drivebackup.encryption.StringNoEncrytionService;
 
 public class SimpleLocalDirectoryTest {
 
 	@Test
 	public void testGetName() {
 		File dir = new File("./src/test/resources/folder");
-		LocalDirectoryImpl simpleLocalDirectory = new LocalDirectoryImpl(dir, new NoEncryptionService(), (file)-> false);
+		LocalDirectoryImpl simpleLocalDirectory = new LocalDirectoryImpl(dir, new NoEncryptionService(), new StringNoEncrytionService(),(file)-> false);
 
-		assertEquals(simpleLocalDirectory.getName(), "folder");
+		assertEquals(simpleLocalDirectory.getEncryptedName(), "folder");
 	}
 
 	@Test
 	public void testGetFiles() throws IOException {
 		File dir = new File("./src/test/resources/folder");
-		LocalDirectoryImpl simpleLocalDirectory = new LocalDirectoryImpl(dir, new NoEncryptionService(), (file)-> false);
+		LocalDirectoryImpl simpleLocalDirectory = new LocalDirectoryImpl(dir, new NoEncryptionService(), new StringNoEncrytionService(), (file)-> false);
 
 		Stream<LocalFile> files = simpleLocalDirectory.getFiles();
 
@@ -40,17 +41,17 @@ public class SimpleLocalDirectoryTest {
 	@Test
 	public void testGetSubDirectories() throws IOException {
 		File dir = new File("./src/test/resources/folder");
-		LocalDirectoryImpl simpleLocalDirectory = new LocalDirectoryImpl(dir, new NoEncryptionService(), (file)-> false);
+		LocalDirectoryImpl simpleLocalDirectory = new LocalDirectoryImpl(dir, new NoEncryptionService(), new StringNoEncrytionService(), (file)-> false);
 
 		Stream<LocalDirectory> subDir = simpleLocalDirectory.getSubDirectories();
-		assertThat(subDir.map((d) -> d.getName()).collect(Collectors.toList()), contains("subfolder_1", "subfolder_2"));
+		assertThat(subDir.map((d) -> d.getEncryptedName()).collect(Collectors.toList()), contains("subfolder_1", "subfolder_2"));
 	}
 	
 	@Test
 	public void testGetFilesWithIgnoredFile() throws IOException {
 		File dir = new File("./src/test/resources/folder");
 		Predicate<File> fileIgnoredPredicate = (file) -> file.getName().equals("file_2.txt");
-		LocalDirectoryImpl localDirectory = new LocalDirectoryImpl(dir, new NoEncryptionService(), fileIgnoredPredicate);
+		LocalDirectoryImpl localDirectory = new LocalDirectoryImpl(dir, new NoEncryptionService(), new StringNoEncrytionService(), fileIgnoredPredicate);
 
 		Stream<LocalFile> files = localDirectory.getFiles();
 
@@ -63,11 +64,11 @@ public class SimpleLocalDirectoryTest {
 	public void testGetSubDirectoriesWithIgnoredFile() throws IOException {
 		File dir = new File("./src/test/resources/folder");
 		Predicate<File> fileIgnoredPredicate = (file) -> file.getName().equals("subfolder_2");
-		LocalDirectoryImpl localDirectory = new LocalDirectoryImpl(dir, new NoEncryptionService(), fileIgnoredPredicate);
+		LocalDirectoryImpl localDirectory = new LocalDirectoryImpl(dir, new NoEncryptionService(),  new StringNoEncrytionService(), fileIgnoredPredicate);
 
 		Stream<LocalDirectory> subDir = localDirectory.getSubDirectories();
 		
-		assertThat(subDir.map((d) -> d.getName()).collect(Collectors.toList()), contains("subfolder_1"));
+		assertThat(subDir.map((d) -> d.getEncryptedName()).collect(Collectors.toList()), contains("subfolder_1"));
 	}
 
 }

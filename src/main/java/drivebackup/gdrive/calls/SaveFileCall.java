@@ -26,7 +26,7 @@ public class SaveFileCall implements IOCallable<File> {
 	@Override
 	public File call() throws IOException {
 		File body = new File();
-		body.setTitle(localFile.getName());
+		body.setTitle(localFile.getEncryptedName());
 		body.setParents(Arrays.asList(new ParentReference().setId(parentId)));
 		OriginMD5ChecksumAccessor md5ChecksumAccessor = new OriginMD5ChecksumAccessor(body);
 		md5ChecksumAccessor.set(localFile.getOriginMd5Checksum());

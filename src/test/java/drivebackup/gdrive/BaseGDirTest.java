@@ -8,6 +8,7 @@ import org.junit.Before;
 import com.google.api.services.drive.Drive;
 
 import drivebackup.encryption.NoEncryptionService;
+import drivebackup.encryption.StringNoEncrytionService;
 import drivebackup.local.LocalFile;
 import drivebackup.local.LocalFileImpl;
 
@@ -33,6 +34,6 @@ public class BaseGDirTest {
 	
 
 	protected LocalFile localFile(String path){
-		return new LocalFileImpl(new java.io.File(path), new NoEncryptionService());
+		return new LocalFileImpl(new java.io.File(path), new NoEncryptionService(), new StringNoEncrytionService());
 	}
 }

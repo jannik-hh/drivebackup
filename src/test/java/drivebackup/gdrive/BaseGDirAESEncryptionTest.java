@@ -13,6 +13,7 @@ import com.google.api.services.drive.Drive;
 
 import drivebackup.encryption.AESEncryptionService;
 import drivebackup.encryption.EncryptionService;
+import drivebackup.encryption.StringNoEncrytionService;
 import drivebackup.local.LocalFile;
 import drivebackup.local.LocalFileImpl;
 
@@ -45,7 +46,7 @@ public class BaseGDirAESEncryptionTest {
 	}
 	
 	protected LocalFile localFile(String path){
-		return new LocalFileImpl(new java.io.File(path), encryptionService);
+		return new LocalFileImpl(new java.io.File(path), encryptionService, new StringNoEncrytionService());
 	}
 
 }

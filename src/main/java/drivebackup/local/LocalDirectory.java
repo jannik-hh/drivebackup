@@ -17,9 +17,11 @@ import drivebackup.gdrive.GDirectory;
 
 public interface LocalDirectory {
 	static final Logger logger = LogManager.getLogger("DriveBackup");
-
+	
 	public String getName();
-
+	
+	public String getEncryptedName();
+	
 	public Stream<LocalFile> getFiles() throws IOException;
 
 	public Stream<LocalDirectory> getSubDirectories() throws IOException;
@@ -34,16 +36,16 @@ public interface LocalDirectory {
 		});
 		getSubDirectories().parallel().forEach((subDir) -> {
 			try {
-				GDirectory subGDir = gDir.findOrCreateDirectory(subDir.getName());
+				GDirectory subGDir = gDir.findOrCreateDirectory(subDir.getEncryptedName());
 				subDir.backup(subGDir);
 			} catch (IOException e) {
-				logger.warn("unable to backup {}", subDir.getName());
+				logger.warn("unable to backup {}", subDir.getEncryptedName());
 			}
 
 		});
 		Collection<String> childrenNames = Stream.concat(
-				getSubDirectories().map((subDir) -> subDir.getName()),
-				getFiles().map((file) -> file.getName())
+				getSubDirectories().map((subDir) -> subDir.getEncryptedName()),
+				getFiles().map((file) -> file.getEncryptedName())
 		).collect(Collectors.toCollection(TreeSet::new));
 		
 		gDir.deleteAllExceptOf(childrenNames);

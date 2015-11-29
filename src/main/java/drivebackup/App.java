@@ -24,6 +24,9 @@ import drivebackup.encryption.AESEncryptionService;
 import drivebackup.encryption.AESSecretKeyProvider;
 import drivebackup.encryption.EncryptionService;
 import drivebackup.encryption.NoEncryptionService;
+import drivebackup.encryption.StringAESAndBase64EncryptionService;
+import drivebackup.encryption.StringEncryptionService;
+import drivebackup.encryption.StringNoEncrytionService;
 import drivebackup.gdrive.DefaultGDirectory;
 import drivebackup.gdrive.DriveServiceFactory;
 import drivebackup.gdrive.GDirectory;
@@ -35,8 +38,10 @@ public class App {
 	private static final String SOURCE_DIR_OPTION = "source";
 	private static final String SECRET_KEY_OPTION = "secretKey";
 	private static final String ENCRYPTION_OPTION = "encrypt";
+	private static final String ENCRYPT_NAME_OPTION = "encryptNames";
 	private static final String IGNORE_FILE_OPTION = "ignore";
 	private static final String DRIVE_CREDENTIALS_OPTIONS = "driveCredentials";
+	private static final String DECRYPT_NAME_OPTION = "decryptNames";
 	private static final Logger logger = LogManager.getLogger("DriveBackup");
 	private static final LocalDirectoryFactory localDirectoryFactory = new LocalDirectoryFactory();
 
@@ -57,14 +62,26 @@ public class App {
 			CommandLineParser parser = new DefaultParser();
 			CommandLine cmd = parser.parse(cmdBackupOptions(), args);
 			EncryptionService encryptionService;
+			StringEncryptionService stringEncryptionService; 
 			if (cmd.hasOption(ENCRYPTION_OPTION)) {
 				String path = cmd.getOptionValue(SECRET_KEY_OPTION);
 				SecretKey secretKey = AESSecretKeyProvider.getOrCreateSecretKey(path);
 				encryptionService = new AESEncryptionService(secretKey);
+				if (cmd.hasOption(ENCRYPT_NAME_OPTION)){
+					stringEncryptionService = new StringAESAndBase64EncryptionService(secretKey);
+				}else{
+					stringEncryptionService = new StringNoEncrytionService();
+				}
 			} else {
 				encryptionService = new NoEncryptionService();
+				stringEncryptionService = new StringNoEncrytionService();
 			}
-			LocalDirectory localDirectory = localDirectoryFactory.getLocalDirectory(cmd.getOptionValue(SOURCE_DIR_OPTION), cmd.getOptionValue(IGNORE_FILE_OPTION), encryptionService);
+			LocalDirectory localDirectory = localDirectoryFactory.getLocalDirectory(
+					cmd.getOptionValue(SOURCE_DIR_OPTION),
+					cmd.getOptionValue(IGNORE_FILE_OPTION),
+					encryptionService,
+					stringEncryptionService
+				);
 			Drive drive = DriveServiceFactory.getDriveService(cmd.getOptionValue(DRIVE_CREDENTIALS_OPTIONS));
 			GDirectory gDir = DefaultGDirectory.fromPath(cmd.getOptionValue(TARGET_DIR_OPTION), drive);
 			logger.info("Backup started");
@@ -88,7 +105,18 @@ public class App {
 			String path = cmd.getOptionValue(SECRET_KEY_OPTION);
 			SecretKey secretKey = AESSecretKeyProvider.getSecretKey(new File(path));
 			EncryptionService encryptionService = new AESEncryptionService(secretKey);
-			LocalDirectory localDirectory = localDirectoryFactory.getLocalDirectory(cmd.getOptionValue(SOURCE_DIR_OPTION), null, encryptionService);
+			StringEncryptionService stringEncryptionService;
+			if (cmd.hasOption(DECRYPT_NAME_OPTION)){
+				stringEncryptionService = new StringAESAndBase64EncryptionService(secretKey);
+			}else{
+				stringEncryptionService = new StringNoEncrytionService();
+			}
+			LocalDirectory localDirectory = localDirectoryFactory.getLocalDirectory(
+					cmd.getOptionValue(SOURCE_DIR_OPTION), 
+					null,
+					encryptionService,
+					stringEncryptionService
+				);
 			
 			logger.info("Decryption started");
 			long start = System.currentTimeMillis();
@@ -116,6 +144,8 @@ public class App {
 				.argName("targetDir").required().build();
 		Option encryptOption = Option.builder(ENCRYPTION_OPTION)
 				.desc("All files are encrypted before uploading to google drive").hasArg(false).build();
+		Option encryptNameOption = Option.builder(ENCRYPT_NAME_OPTION)
+				.desc("All Names of files and directories are encrypted before uploading to google drive").hasArg(false).build();
 		Option secretKey = Option.builder(SECRET_KEY_OPTION)
 				.desc("Path to secret key. If not given, a secret key file will be created").hasArg(true)
 				.argName("secretKeyFile").build();
@@ -128,6 +158,7 @@ public class App {
 		options.addOption(srcDir);
 		options.addOption(targetDir);
 		options.addOption(encryptOption);
+		options.addOption(encryptNameOption);
 		options.addOption(secretKey);
 		options.addOption(ignoreFile);
 		options.addOption(driveCredentials);
@@ -143,9 +174,12 @@ public class App {
 		Option secretKey = Option.builder(SECRET_KEY_OPTION)
 				.desc("Path to secret key").hasArg(true).
 				required().argName("secretKeyFile").build();
+		Option decryptNameOption = Option.builder(DECRYPT_NAME_OPTION)
+				.desc("All Names of files and directories will be decrypted").hasArg(false).build();
 		options.addOption(srcDir);
 		options.addOption(targetDir);
 		options.addOption(secretKey);
+		options.addOption(decryptNameOption);
 		return options;
 	}
 }

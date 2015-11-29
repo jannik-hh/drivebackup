@@ -51,7 +51,7 @@ public class DefaultGDirectory implements GDirectory {
 
 	@Override
 	public File saveOrUpdateFile(LocalFile file) throws IOException {
-		Optional<File> remoteFile = findFile(file.getName());
+		Optional<File> remoteFile = findFile(file.getEncryptedName());
 		if (remoteFile.isPresent()) {
 			File existentRemoteFile = remoteFile.get();
 			if (needsUpdate(file, existentRemoteFile)) {
@@ -124,7 +124,7 @@ public class DefaultGDirectory implements GDirectory {
 		File savedFile;
 		if(fileWithSameMD5 != null){
 			savedFile = QueryExecutorWithRetry.executeWithRetryAndLogTime(
-				new CopyFileCall(fileWithSameMD5, parentID, localFile.getName(), drive),
+				new CopyFileCall(fileWithSameMD5, parentID, localFile.getEncryptedName(), drive),
 				String.format("%s saved by copying", localFile.getPath())
 			);
 		}else{

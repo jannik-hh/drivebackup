@@ -6,6 +6,7 @@ import java.io.InputStream;
 
 public interface LocalFile {
 	public String getName();
+	public String getEncryptedName();
 	public String getPath();
 	public InputStream getEncryptedInputStream() throws FileNotFoundException ;
 	public InputStream getDecryptedInputStream() throws FileNotFoundException ;

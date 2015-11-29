@@ -7,19 +7,27 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import drivebackup.encryption.EncryptionService;
+import drivebackup.encryption.StringEncryptionService;
 
 public class LocalFileImpl implements LocalFile {
 	private final File file;
 	private final EncryptionService encryptionService;
+	private final StringEncryptionService stringEncryptionService;
 	private String md5Checksum;
 	
-	public LocalFileImpl(File file, EncryptionService encryptionService){
+	public LocalFileImpl(File file, EncryptionService encryptionService, StringEncryptionService stringEncryptionService){
 		this.file= file;
 		this.encryptionService = encryptionService;
+		this.stringEncryptionService = stringEncryptionService;
 	}
+	
+	public String getName(){
+		return stringEncryptionService.decrypt(file.getName());
+	}
+	
 	@Override
-	public String getName() {
-		return file.getName();
+	public String getEncryptedName() {
+		return stringEncryptionService.encrypt(file.getName());
 	}
 
 	@Override
@@ -31,7 +39,8 @@ public class LocalFileImpl implements LocalFile {
 	public InputStream getEncryptedInputStream() throws FileNotFoundException  {
 		return encryptionService.encrypt(new FileInputStream(file));
 	}
-	
+
+	@Override
 	public InputStream getDecryptedInputStream() throws FileNotFoundException {
 		return encryptionService.decrypt(new FileInputStream(file));
 	}
@@ -48,4 +57,5 @@ public class LocalFileImpl implements LocalFile {
 		InputStream inputStream = new FileInputStream(file);
 		return org.apache.commons.codec.digest.DigestUtils.md5Hex(inputStream);
 	}
+	
 }
