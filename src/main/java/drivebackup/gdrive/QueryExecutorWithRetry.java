@@ -26,6 +26,7 @@ public class QueryExecutorWithRetry {
 			return request.call();
 		}catch(IOException e){
 			if(retry_count <= NR_OF_RETRIES){
+				logger.error(e.toString());
 				sleep(10 * retry_count);
 				return executeWithRetry(request, retry_count + 1);
 			}else{

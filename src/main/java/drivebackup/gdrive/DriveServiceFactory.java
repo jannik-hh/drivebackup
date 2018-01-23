@@ -3,14 +3,18 @@ package drivebackup.gdrive;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
 import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
@@ -51,22 +55,23 @@ public class DriveServiceFactory {
 	 * @return an authorized Credential object.
 	 * @throws IOException
 	 */
-	private static Credential authorize(String pathToDataStoreDir) throws IOException {
-		// Load client secrets.
-		InputStream in = DriveServiceFactory.class.getResourceAsStream("/client_secret.json");
-		GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(in));
-		java.io.File acutalDataStoreDir= null;
-		if(pathToDataStoreDir == null){
-			acutalDataStoreDir= DATA_STORE_DIR;
-		}else{
-			acutalDataStoreDir = new java.io.File(pathToDataStoreDir);
-		}
-		DataStoreFactory dataStoreFactory = new FileDataStoreFactory(acutalDataStoreDir);
-		// Build flow and trigger user authorization request.
-		GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(HTTP_TRANSPORT, JSON_FACTORY,
-				clientSecrets, SCOPES).setDataStoreFactory(dataStoreFactory).setAccessType("offline").build();
-		Credential credential = new AuthorizationCodeInstalledApp(flow, new LocalServerReceiver()).authorize("user");
-		return credential;
+	public static Credential authorize(String pathToDataStoreDir) {
+        try {
+            java.io.File acutalDataStoreDir = null;
+            if (pathToDataStoreDir == null) {
+                acutalDataStoreDir = DATA_STORE_DIR;
+            } else {
+                acutalDataStoreDir = new java.io.File(pathToDataStoreDir);
+            }
+            DataStoreFactory dataStoreFactory = new FileDataStoreFactory(acutalDataStoreDir);
+            // Build flow and trigger user authorization request.
+            GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(HTTP_TRANSPORT, JSON_FACTORY,
+                    getClientSecrets(), SCOPES).setDataStoreFactory(dataStoreFactory).setAccessType("offline").build();
+            Credential credential = new AuthorizationCodeInstalledApp(flow, new LocalServerReceiver()).authorize("user");
+            return credential;
+        } catch (IOException e){
+            throw new RuntimeException(e);
+        }
 	}
 
 	/**
@@ -77,7 +82,7 @@ public class DriveServiceFactory {
 	 */
 	public static Drive getDriveService(String pathToDataStoreDir) throws IOException {
 		if(drive == null){
-			Credential credential = authorize(pathToDataStoreDir);
+            Credential credential = credentialFromEnvVar().orElseGet( () -> authorize(pathToDataStoreDir));
 			drive = new Drive.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential).setApplicationName(APPLICATION_NAME).build();
 		}
 		return drive;	
@@ -86,4 +91,34 @@ public class DriveServiceFactory {
 	public static Drive getDriveService() throws IOException{
 		return getDriveService(null);
 	}
+
+	private static GoogleClientSecrets getClientSecrets() {
+		try{
+            // Load client secrets.
+            String clientSecretsString = System.getenv("DRIVEBACKUP_CLIENT_SECRETS");
+            if (clientSecretsString != null){
+                return GoogleClientSecrets.load(JSON_FACTORY, new StringReader(clientSecretsString));
+            } else {
+                InputStream in = DriveServiceFactory.class.getResourceAsStream("/client_secret.json");
+                return GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(in));
+            }
+        } catch (IOException e){
+		    throw new RuntimeException(e);
+        }
+	}
+
+	private static Optional<Credential> credentialFromEnvVar() throws IOException{
+	    return Optional.ofNullable(System.getenv("DRIVEBACKUP_CREDENTIAL_REFRESH_TOKEN")).
+                map((refreshToken) ->
+                        new GoogleCredential.Builder()
+                                .setTransport(HTTP_TRANSPORT)
+                                .setJsonFactory(JSON_FACTORY)
+                                .setClientSecrets(getClientSecrets())
+                                .build()
+                                .setFromTokenResponse(
+                                        new GoogleTokenResponse().setRefreshToken(refreshToken)
+                                )
+                );
+    }
+
 }

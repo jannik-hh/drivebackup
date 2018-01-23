@@ -50,8 +50,10 @@ public class App {
 			System.out.println("select an option: backup or decrypt");
 		}else if(args[0].equals("backup")){
 			backup(args);
-		}else if(args[0].equals("decrypt")){
+		}else if(args[0].equals("decrypt")) {
 			decrypt(args);
+		}else if(args[0].equals("authorize")) {
+			authorize(args);
 		}else{
 			System.out.println("select an option: backup or decrypt");
 		}
@@ -92,6 +94,20 @@ public class App {
 			logger.info("Backup finished in {}", duration);
 
 		} catch (MissingOptionException e) {
+			System.out.println(e.getLocalizedMessage());
+			printHelp(cmdBackupOptions());
+		}
+	}
+
+	private static void authorize(String[] args) throws IOException{
+		try {
+			CommandLineParser parser = new DefaultParser();
+			CommandLine cmd = parser.parse(cmdauthorizeOptions(), args);
+
+			DriveServiceFactory.authorize(cmd.getOptionValue(DRIVE_CREDENTIALS_OPTIONS));
+			logger.info("finished");
+
+		} catch (ParseException e) {
 			System.out.println(e.getLocalizedMessage());
 			printHelp(cmdBackupOptions());
 		}
@@ -161,6 +177,19 @@ public class App {
 		options.addOption(encryptNameOption);
 		options.addOption(secretKey);
 		options.addOption(ignoreFile);
+		options.addOption(driveCredentials);
+		return options;
+	}
+
+	private static Options cmdauthorizeOptions() {
+		Options options = new Options();
+		Option secretKey = Option.builder(SECRET_KEY_OPTION)
+				.desc("Path to secret key. If not given, a secret key file will be created").hasArg(true)
+				.argName("secretKeyFile").build();
+		Option driveCredentials = Option.builder(DRIVE_CREDENTIALS_OPTIONS)
+				.desc("Path to drive credentials.").hasArg(true)
+				.argName("driveCrendentialsDir").build();
+		options.addOption(secretKey);
 		options.addOption(driveCredentials);
 		return options;
 	}
