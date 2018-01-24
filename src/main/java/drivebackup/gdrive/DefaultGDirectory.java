@@ -122,14 +122,18 @@ public class DefaultGDirectory implements GDirectory {
   }
 
   private File saveFile(LocalFile localFile) throws IOException {
-    File fileWithSameMD5 =
+    Optional<File> fileWithSameMD5 =
         QueryExecutorWithRetry.executeWithRetry(
-            new FindFileByOriginMD5Checksum(localFile.getOriginMd5Checksum(), drive));
+            new FindFileByOriginMD5Checksum(
+                localFile.getOriginMd5Checksum(),
+                localFile.getMd5ChecksumOfEncryptedContent(),
+                drive));
     File savedFile;
-    if (fileWithSameMD5 != null) {
+    if (fileWithSameMD5.isPresent()) {
       savedFile =
           QueryExecutorWithRetry.executeWithRetryAndLogTime(
-              new CopyFileCall(fileWithSameMD5, parentID, localFile.getEncryptedName(), drive),
+              new CopyFileCall(
+                  fileWithSameMD5.get(), parentID, localFile.getEncryptedName(), drive),
               String.format("%s saved by copying", localFile.getPath()));
     } else {
       savedFile =

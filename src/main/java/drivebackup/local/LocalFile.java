@@ -5,15 +5,17 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public interface LocalFile {
-  public String getName();
+  String getName();
 
-  public String getEncryptedName();
+  String getEncryptedName();
 
-  public String getPath();
+  String getPath();
 
-  public InputStream getEncryptedInputStream() throws FileNotFoundException;
+  InputStream getEncryptedInputStream() throws FileNotFoundException;
 
-  public InputStream getDecryptedInputStream() throws FileNotFoundException;
+  InputStream getDecryptedInputStream() throws FileNotFoundException;
 
-  public String getOriginMd5Checksum() throws IOException;
+  String getOriginMd5Checksum() throws IOException;
+
+  String getMd5ChecksumOfEncryptedContent() throws IOException;
 }

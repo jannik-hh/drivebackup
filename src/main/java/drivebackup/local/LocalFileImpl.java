@@ -13,6 +13,7 @@ public class LocalFileImpl implements LocalFile {
   private final EncryptionService encryptionService;
   private final StringEncryptionService stringEncryptionService;
   private String md5Checksum;
+  private String md5ChecksumOfEncryptedContent;
 
   public LocalFileImpl(
       File file,
@@ -50,13 +51,21 @@ public class LocalFileImpl implements LocalFile {
   @Override
   public String getOriginMd5Checksum() throws IOException {
     if (md5Checksum == null) {
-      md5Checksum = calculateMd5Checksum();
+      InputStream inputStream = new FileInputStream(file);
+      md5Checksum = calculateMd5Checksum(inputStream);
     }
     return md5Checksum;
   }
 
-  private String calculateMd5Checksum() throws IOException {
-    InputStream inputStream = new FileInputStream(file);
+  @Override
+  public String getMd5ChecksumOfEncryptedContent() throws IOException {
+    if (md5ChecksumOfEncryptedContent == null) {
+      md5ChecksumOfEncryptedContent = calculateMd5Checksum(getEncryptedInputStream());
+    }
+    return md5ChecksumOfEncryptedContent;
+  }
+
+  private String calculateMd5Checksum(InputStream inputStream) throws IOException {
     return org.apache.commons.codec.digest.DigestUtils.md5Hex(inputStream);
   }
 }
