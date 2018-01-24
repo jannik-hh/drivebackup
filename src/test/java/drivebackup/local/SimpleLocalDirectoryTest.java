@@ -2,6 +2,7 @@ package drivebackup.local;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertEquals;
 
 import drivebackup.encryption.NoEncryptionService;
@@ -39,7 +40,7 @@ public class SimpleLocalDirectoryTest {
 
     assertThat(
         files.map((localFile) -> localFile.getPath()).collect(Collectors.toList()),
-        contains(file_1_path, file_2_path));
+        containsInAnyOrder(file_1_path, file_2_path));
   }
 
   @Test
@@ -52,7 +53,7 @@ public class SimpleLocalDirectoryTest {
     Stream<LocalDirectory> subDir = simpleLocalDirectory.getSubDirectories();
     assertThat(
         subDir.map((d) -> d.getEncryptedName()).collect(Collectors.toList()),
-        contains("subfolder_1", "subfolder_2"));
+        containsInAnyOrder("subfolder_1", "subfolder_2"));
   }
 
   @Test
