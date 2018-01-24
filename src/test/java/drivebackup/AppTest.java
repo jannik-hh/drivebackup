@@ -6,12 +6,13 @@ import com.google.api.services.drive.model.FileList;
 import drivebackup.gdrive.DriveServiceFactory;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
+import java.util.UUID;
 import org.apache.commons.cli.ParseException;
 import org.junit.After;
 import org.junit.Test;
 
 public class AppTest {
-  private static final String TEST_DIR = "DriveBackupTest";
+  private static final String TEST_DIR = String.format("DriveBackupTest/%s", UUID.randomUUID());
 
   @Test
   public void testDefault() throws NoSuchAlgorithmException, ParseException, IOException {

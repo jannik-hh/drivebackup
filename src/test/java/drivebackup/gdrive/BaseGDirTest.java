@@ -6,11 +6,12 @@ import drivebackup.encryption.StringNoEncrytionService;
 import drivebackup.local.LocalFile;
 import drivebackup.local.LocalFileImpl;
 import java.io.IOException;
+import java.util.UUID;
 import org.junit.After;
 import org.junit.Before;
 
 public class BaseGDirTest {
-  private static final String TEST_DIR = "DriveBackupTest";
+  private static final String TEST_DIR = String.format("DriveBackupTest/%s", UUID.randomUUID());
   protected Drive googleDrive;
   protected GDirectory gDir;
 

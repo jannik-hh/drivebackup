@@ -8,13 +8,14 @@ import drivebackup.local.LocalFile;
 import drivebackup.local.LocalFileImpl;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
+import java.util.UUID;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import org.junit.After;
 import org.junit.Before;
 
 public class BaseGDirAESEncryptionTest {
-  private static final String TEST_DIR = "DriveBackupTest";
+  private static final String TEST_DIR = String.format("DriveBackupTest/%s", UUID.randomUUID());
   protected Drive googleDrive;
   protected EncryptionService encryptionService;
   protected GDirectory gDir;
