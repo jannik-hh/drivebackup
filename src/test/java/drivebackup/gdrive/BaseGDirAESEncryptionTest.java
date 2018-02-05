@@ -14,7 +14,7 @@ import javax.crypto.SecretKey;
 import org.junit.After;
 import org.junit.Before;
 
-public class BaseGDirAESEncryptionTest {
+public class BaseGDirAESEncryptionTest extends BaseGDriveTest {
   private static final String TEST_DIR = String.format("DriveBackupTest/%s", UUID.randomUUID());
   protected Drive googleDrive;
   protected EncryptionService encryptionService;

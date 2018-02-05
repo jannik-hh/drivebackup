@@ -49,12 +49,10 @@ public class DriveServiceFactory {
     }
   }
 
-  /**
-   * Creates an authorized Credential object.
-   *
-   * @return an authorized Credential object.
-   * @throws IOException
-   */
+  public static Credential authorize() {
+    return authorize(DATA_STORE_DIR.getAbsolutePath());
+  }
+
   public static Credential authorize(String pathToDataStoreDir) {
     try {
       java.io.File acutalDataStoreDir = null;
@@ -72,7 +70,10 @@ public class DriveServiceFactory {
               .setAccessType("offline")
               .build();
       Credential credential =
-          new AuthorizationCodeInstalledApp(flow, new LocalServerReceiver()).authorize("user");
+          new AuthorizationCodeInstalledApp(
+                  flow,
+                  new LocalServerReceiver.Builder().setPort(9001).setHost("localhost").build())
+              .authorize("user");
       return credential;
     } catch (IOException e) {
       throw new RuntimeException(e);

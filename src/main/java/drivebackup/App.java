@@ -1,13 +1,7 @@
 package drivebackup;
 
 import com.google.api.services.drive.Drive;
-import drivebackup.encryption.AESEncryptionService;
-import drivebackup.encryption.AESSecretKeyProvider;
-import drivebackup.encryption.EncryptionService;
-import drivebackup.encryption.NoEncryptionService;
-import drivebackup.encryption.StringAESAndBase64EncryptionService;
-import drivebackup.encryption.StringEncryptionService;
-import drivebackup.encryption.StringNoEncrytionService;
+import drivebackup.encryption.*;
 import drivebackup.gdrive.DefaultGDirectory;
 import drivebackup.gdrive.DriveServiceFactory;
 import drivebackup.gdrive.GDirectory;
@@ -18,14 +12,7 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import javax.crypto.SecretKey;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.MissingOptionException;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 

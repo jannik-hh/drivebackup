@@ -10,7 +10,7 @@ import java.util.UUID;
 import org.junit.After;
 import org.junit.Before;
 
-public class BaseGDirTest {
+public class BaseGDirTest extends BaseGDriveTest {
   private static final String TEST_DIR = String.format("DriveBackupTest/%s", UUID.randomUUID());
   protected Drive googleDrive;
   protected GDirectory gDir;

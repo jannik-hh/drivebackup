@@ -1,0 +1,14 @@
+version: "3.0"
+services:
+  test:
+    image: circleci/openjdk:8-jdk
+    working_dir: /code
+    environment:
+     # - DRIVEBACKUP_CREDENTIAL_REFRESH_TOKEN=${DRIVEBACKUP_CREDENTIAL_REFRESH_TOKEN}
+      - DRIVEBACKUP_CLIENT_SECRETS=${DRIVEBACKUP_CLIENT_SECRETS}
+    volumes:
+      - .:/code
+      - ./.m2/:/home/circleci/.m2
+    ports:
+      - '9001:9001'
+    command: mvn test
