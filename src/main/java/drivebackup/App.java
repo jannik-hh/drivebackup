@@ -88,7 +88,7 @@ public class App {
   private static void authorize(String[] args) throws IOException {
     try {
       CommandLineParser parser = new DefaultParser();
-      CommandLine cmd = parser.parse(cmdauthorizeOptions(), args);
+      CommandLine cmd = parser.parse(cmdAuthorizeOptions(), args);
 
       DriveServiceFactory.authorize(cmd.getOptionValue(DRIVE_CREDENTIALS_OPTIONS));
       logger.info("finished");
@@ -182,7 +182,7 @@ public class App {
         Option.builder(DRIVE_CREDENTIALS_OPTIONS)
             .desc("Path to drive credentials.")
             .hasArg(true)
-            .argName("driveCrendentialsDir")
+            .argName("driveCredentialsDir")
             .build();
     options.addOption(srcDir);
     options.addOption(targetDir);
@@ -194,7 +194,7 @@ public class App {
     return options;
   }
 
-  private static Options cmdauthorizeOptions() {
+  private static Options cmdAuthorizeOptions() {
     Options options = new Options();
     Option secretKey =
         Option.builder(SECRET_KEY_OPTION)
@@ -206,7 +206,7 @@ public class App {
         Option.builder(DRIVE_CREDENTIALS_OPTIONS)
             .desc("Path to drive credentials.")
             .hasArg(true)
-            .argName("driveCrendentialsDir")
+            .argName("driveCredentialsDir")
             .build();
     options.addOption(secretKey);
     options.addOption(driveCredentials);
