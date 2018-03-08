@@ -6,11 +6,17 @@ jobs:
 
     docker:
       - image: circleci/openjdk:8-jdk
-
+        environment:
+          - CC_TEST_REPORTER_ID=ba673ad992797b6b9e954a03e011fa6769900530efb15ff00c7af89253b0d671
+          - DRIVEBACKUP_CREDENTIAL_REFRESH_TOKEN=1/2IY7DY12-2Mzkf5yU8AK9nWlKLzDWSPOCK6paFCzoZY
     steps:
-
       - checkout
-
+      - run:
+          name:  Download cc-test-reporter
+          command: |
+            mkdir -p tmp/
+            curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./tmp/cc-test-reporter
+            chmod +x ./tmp/cc-test-reporter
       - restore_cache:
           key: drivebackup-{{ checksum "pom.xml" }}
 
@@ -21,10 +27,11 @@ jobs:
             - ~/.m2
           key: drivebackup-{{ checksum "pom.xml" }}
 
-      - run: mvn package
+      - type: shell
+        command: |
+          ./tmp/cc-test-reporter before-build
+          mvn test
+          ./tmp/cc-test-reporter after-build
 
       - store_test_results:
           path: target/surefire-reports
-
-      - store_artifacts:
-          path: target/demo-java-spring-0.0.1-SNAPSHOT.jar
