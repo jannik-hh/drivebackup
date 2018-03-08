@@ -1,5 +1,5 @@
 # Drivebackup [![CircleCI](https://circleci.com/gh/jannik-hh/drivebackup.svg?style=svg)](https://circleci.com/gh/jannik-hh/drivebackup) [![Maintainability](https://api.codeclimate.com/v1/badges/df110004d0ebe06536b9/maintainability)](https://codeclimate.com/github/jannik-hh/drivebackup/maintainability) [![Test Coverage](https://api.codeclimate.com/v1/badges/df110004d0ebe06536b9/test_coverage)](https://codeclimate.com/github/jannik-hh/drivebackup/test_coverage)
-Drivebackup is a CLI tool to backup your data with google drive.
+Drivebackup is a CLI tool to backup data with google drive.
 
 ## Prerequisites
 Maven, Java JDK 8 and a Google api project is needed.
