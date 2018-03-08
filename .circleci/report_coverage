@@ -1,0 +1,12 @@
+#!/bin/bash
+set -o errexit
+set -o nounset
+exit_code=$1
+
+base_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../
+cd $base_dir/src/main/java
+$base_dir/tmp/cc-test-reporter format-coverage -t jacoco --add-prefix src/main/java ./../../../target/site/jacoco/jacoco.xml
+cd $base_dir
+tmp/cc-test-reporter upload-coverage --input $base_dir/src/main/java/coverage/codeclimate.json
+
+exit $exit_code

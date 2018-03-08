@@ -8,7 +8,6 @@ jobs:
       - image: circleci/openjdk:8-jdk
         environment:
           - CC_TEST_REPORTER_ID=ba673ad992797b6b9e954a03e011fa6769900530efb15ff00c7af89253b0d671
-          - DRIVEBACKUP_CREDENTIAL_REFRESH_TOKEN=1/2IY7DY12-2Mzkf5yU8AK9nWlKLzDWSPOCK6paFCzoZY
     steps:
       - checkout
       - run:
@@ -31,7 +30,7 @@ jobs:
         command: |
           ./tmp/cc-test-reporter before-build
           mvn test
-          ./tmp/cc-test-reporter after-build
+          ./.circleci/report_coverage $?
 
       - store_test_results:
           path: target/surefire-reports
