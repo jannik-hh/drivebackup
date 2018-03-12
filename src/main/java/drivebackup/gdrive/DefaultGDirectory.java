@@ -24,12 +24,13 @@ public class DefaultGDirectory implements GDirectory {
 
   private final String parentID;
 
-  public static GDirectory fromPath(String directoryPath, Drive drive) throws IOException {
+  public static GDirectory findOrCreateFromPath(String directoryPath, Drive drive)
+      throws IOException {
     GDirectory gDirectory = new DefaultGDirectory(drive, "root");
-    String[] subdirs = directoryPath.split("/");
-    for (String subdir : subdirs) {
-      if (!subdir.trim().isEmpty()) {
-        gDirectory = gDirectory.findOrCreateDirectory(subdir);
+    String[] subDirs = directoryPath.split("/");
+    for (String subDir : subDirs) {
+      if (!subDir.trim().isEmpty()) {
+        gDirectory = gDirectory.findOrCreateDirectory(subDir);
       }
     }
     return gDirectory;
@@ -65,6 +66,7 @@ public class DefaultGDirectory implements GDirectory {
   @Override
   public GDirectory findOrCreateDirectory(String name) throws IOException {
     Optional<GDirectory> directory = findDirectory(name);
+
     if (directory.isPresent()) {
       return directory.get();
     } else {

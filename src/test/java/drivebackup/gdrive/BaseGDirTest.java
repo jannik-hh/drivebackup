@@ -18,7 +18,7 @@ public class BaseGDirTest extends BaseGDriveTest {
   @Before
   public void before() throws IOException {
     googleDrive = DriveServiceFactory.getDriveService();
-    gDir = DefaultGDirectory.fromPath(TEST_DIR, googleDrive);
+    gDir = DefaultGDirectory.findOrCreateFromPath(TEST_DIR, googleDrive);
   }
 
   @After

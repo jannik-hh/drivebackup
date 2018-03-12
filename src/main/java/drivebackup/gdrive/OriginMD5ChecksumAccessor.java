@@ -42,7 +42,7 @@ public class OriginMD5ChecksumAccessor {
   private List<Property> getProperties() {
     List<Property> properties = file.getProperties();
     if (properties == null) {
-      properties = new ArrayList<Property>();
+      properties = new ArrayList();
       file.setProperties(properties);
     }
     return properties;

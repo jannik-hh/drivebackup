@@ -24,7 +24,7 @@ public class BaseGDirAESEncryptionTest extends BaseGDriveTest {
   public void before() throws IOException, NoSuchAlgorithmException {
     googleDrive = DriveServiceFactory.getDriveService();
     encryptionService = new AESEncryptionService(generateSecretKey());
-    gDir = DefaultGDirectory.fromPath(TEST_DIR, googleDrive);
+    gDir = DefaultGDirectory.findOrCreateFromPath(TEST_DIR, googleDrive);
   }
 
   @After

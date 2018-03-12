@@ -71,7 +71,8 @@ public class App {
               stringEncryptionService);
       Drive drive =
           DriveServiceFactory.getDriveService(cmd.getOptionValue(DRIVE_CREDENTIALS_OPTIONS));
-      GDirectory gDir = DefaultGDirectory.fromPath(cmd.getOptionValue(TARGET_DIR_OPTION), drive);
+      GDirectory gDir =
+          DefaultGDirectory.findOrCreateFromPath(cmd.getOptionValue(TARGET_DIR_OPTION), drive);
       logger.info("Backup started");
       long start = System.currentTimeMillis();
       localDirectory.backup(gDir);
