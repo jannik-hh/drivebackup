@@ -18,8 +18,8 @@ public class StringBase64EncryptionServiceTest {
 
     StringAESAndBase64EncryptionService encryptionService =
         new StringAESAndBase64EncryptionService(skey);
-    String encrypted = encryptionService.encrypt(str);
-    String decrypted = encryptionService.decrypt(encrypted);
+    String encrypted = encryptionService.encrypt().apply(str);
+    String decrypted = encryptionService.decrypt().apply(encrypted);
 
     assertEquals(str, decrypted);
   }
@@ -34,8 +34,8 @@ public class StringBase64EncryptionServiceTest {
 
     StringAESAndBase64EncryptionService encryptionService =
         new StringAESAndBase64EncryptionService(skey);
-    String encrypted_1 = encryptionService.encrypt(str);
-    String decrypted_2 = encryptionService.encrypt(str);
+    String encrypted_1 = encryptionService.encrypt().apply(str);
+    String decrypted_2 = encryptionService.encrypt().apply(str);
 
     assertEquals(encrypted_1, decrypted_2);
   }

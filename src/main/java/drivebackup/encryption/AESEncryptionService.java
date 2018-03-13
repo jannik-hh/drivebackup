@@ -8,6 +8,7 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidParameterSpecException;
+import java.util.function.Function;
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
 import javax.crypto.NoSuchPaddingException;
@@ -23,17 +24,21 @@ public class AESEncryptionService implements EncryptionService {
     this.secretKey = secretKey;
   }
 
-  @SuppressWarnings("resource")
-  public InputStream encrypt(InputStream unencryptedInputStream) {
-    Cipher cipher = getCipher(Cipher.ENCRYPT_MODE, null);
-    return new SequenceInputStream(
-        getIV(cipher), new CipherInputStream(unencryptedInputStream, cipher));
+  @Override
+  public Function<InputStream, InputStream> encrypt() {
+    return (InputStream unencryptedInputStream) -> {
+      Cipher cipher = getCipher(Cipher.ENCRYPT_MODE, null);
+      return new SequenceInputStream(
+          getIV(cipher), new CipherInputStream(unencryptedInputStream, cipher));
+    };
   }
 
-  public InputStream decrypt(InputStream encryptedInputStream) {
-    IvParameterSpec iv = readIV(encryptedInputStream);
-    Cipher cipher = getCipher(Cipher.DECRYPT_MODE, iv);
-    return new CipherInputStream(encryptedInputStream, cipher);
+  public Function<InputStream, InputStream> decrypt() {
+    return (InputStream encryptedInputStream) -> {
+      IvParameterSpec iv = readIV(encryptedInputStream);
+      Cipher cipher = getCipher(Cipher.DECRYPT_MODE, iv);
+      return new CipherInputStream(encryptedInputStream, cipher);
+    };
   }
 
   private Cipher getCipher(int encryptionMode, IvParameterSpec iv) {

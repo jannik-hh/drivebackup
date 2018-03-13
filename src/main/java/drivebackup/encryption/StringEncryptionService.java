@@ -1,7 +1,9 @@
 package drivebackup.encryption;
 
-public interface StringEncryptionService {
-  public String encrypt(String plain);
+import java.util.function.Function;
 
-  public String decrypt(String encrypted);
+public interface StringEncryptionService {
+  Function<String, String> encrypt();
+
+  Function<String, String> decrypt();
 }

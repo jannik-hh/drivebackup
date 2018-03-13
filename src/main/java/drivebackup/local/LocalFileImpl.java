@@ -1,32 +1,19 @@
 package drivebackup.local;
 
-import drivebackup.encryption.EncryptionService;
-import drivebackup.encryption.StringEncryptionService;
+import drivebackup.DriveBackupFile;
 import java.io.*;
 
-public class LocalFileImpl implements LocalFile {
+public class LocalFileImpl implements DriveBackupFile {
   private final File file;
-  private final EncryptionService encryptionService;
-  private final StringEncryptionService stringEncryptionService;
   private String md5Checksum;
-  private String md5ChecksumOfEncryptedContent;
 
-  public LocalFileImpl(
-      File file,
-      EncryptionService encryptionService,
-      StringEncryptionService stringEncryptionService) {
+  public LocalFileImpl(File file) {
     this.file = file;
-    this.encryptionService = encryptionService;
-    this.stringEncryptionService = stringEncryptionService;
-  }
-
-  public String getName() {
-    return stringEncryptionService.decrypt(file.getName());
   }
 
   @Override
-  public String getEncryptedName() {
-    return stringEncryptionService.encrypt(file.getName());
+  public String getName() {
+    return file.getName();
   }
 
   @Override
@@ -35,33 +22,25 @@ public class LocalFileImpl implements LocalFile {
   }
 
   @Override
-  public InputStream getEncryptedInputStream() throws FileNotFoundException {
-    return encryptionService.encrypt(new FileInputStream(file));
+  public String getId() {
+    return getPath();
   }
 
   @Override
-  public InputStream getDecryptedInputStream() throws FileNotFoundException {
-    return encryptionService.decrypt(new FileInputStream(file));
+  public InputStream getContent() throws FileNotFoundException {
+    return new FileInputStream(file);
   }
 
   @Override
-  public String getOriginMd5Checksum() throws IOException {
+  public String getOriginalMd5Checksum() throws IOException {
     if (md5Checksum == null) {
-      InputStream inputStream = new FileInputStream(file);
-      md5Checksum = calculateMd5Checksum(inputStream);
+      md5Checksum = org.apache.commons.codec.digest.DigestUtils.md5Hex(getContent());
     }
     return md5Checksum;
   }
 
   @Override
-  public String getMd5ChecksumOfEncryptedContent() throws IOException {
-    if (md5ChecksumOfEncryptedContent == null) {
-      md5ChecksumOfEncryptedContent = calculateMd5Checksum(getEncryptedInputStream());
-    }
-    return md5ChecksumOfEncryptedContent;
-  }
-
-  private String calculateMd5Checksum(InputStream inputStream) throws IOException {
-    return org.apache.commons.codec.digest.DigestUtils.md5Hex(inputStream);
+  public String getMd5Checksum() throws IOException {
+    return getOriginalMd5Checksum();
   }
 }
