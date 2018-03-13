@@ -2,7 +2,7 @@
 Drivebackup is a CLI tool to backup data with google drive.
 
 ## Prerequisites
-Maven, Java JDK 8 and a Google api project is needed.
+Maven, Java JDK 9 and a Google api project is needed.
 
 ### Create a new Google api project
 Set up a new Google api project (https://console.developers.google.com) and create an

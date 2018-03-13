@@ -1,7 +1,7 @@
 version: "3.0"
 services:
   test:
-    image: circleci/openjdk:8-jdk
+    image: circleci/openjdk:9-jdk
     working_dir: /code
     environment:
       - DRIVEBACKUP_CLIENT_SECRETS=${DRIVEBACKUP_CLIENT_SECRETS}
