@@ -14,12 +14,12 @@ Make sure DRIVEBACKUP_CLIENT_SECRETS is exported.
 ### Build project
 `mvn package`
 ### Backup
-`java -jar target/drivebackup-0.7.0-jar-with-dependencies.jar backup -encrypt -encryptNames -source src -target backup_drivebackup_sources`
+`java -jar target/drivebackup-0.8.0-jar-with-dependencies.jar backup -encrypt -encryptNames -source src -target backup_drivebackup_sources`
 ### Recover files from backup
 * Create target dir
 `mkdir recovered`
 * Run
-`java -jar target/drivebackup-0.7.0-jar-with-dependencies.jar recover -decrypt -decryptNames -baseBackupDir backup_drivebackup_sources -recover main -target recovered -secretKey drivebackup_encryption.key`
+`java -jar target/drivebackup-0.8.0-jar-with-dependencies.jar recover -decrypt -decryptNames -baseBackupDir backup_drivebackup_sources -recover main -target recovered -secretKey drivebackup_encryption.key`
 to decrypt the content.
 
 ## Run the tests with docker-compose
