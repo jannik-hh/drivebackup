@@ -27,8 +27,8 @@ public class EncryptionTest {
     InputStream stream = IOUtils.toInputStream(str);
 
     AESEncryptionService encryptor = new AESEncryptionService(skey);
-    InputStream encrypted = encryptor.encrypt(stream);
-    InputStream decrypted = encryptor.decrypt(encrypted);
+    InputStream encrypted = encryptor.encrypt().apply(stream);
+    InputStream decrypted = encryptor.decrypt().apply(encrypted);
 
     String resultStr = IOUtils.toString(decrypted);
     assertEquals(str, resultStr);

@@ -1,9 +1,10 @@
 package drivebackup.encryption;
 
 import java.io.InputStream;
+import java.util.function.Function;
 
 public interface EncryptionService {
-  public InputStream encrypt(InputStream plain);
+  Function<InputStream, InputStream> encrypt();
 
-  public InputStream decrypt(InputStream encrypted);
+  Function<InputStream, InputStream> decrypt();
 }

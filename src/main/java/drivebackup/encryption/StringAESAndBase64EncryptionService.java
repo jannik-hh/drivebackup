@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
+import java.util.function.Function;
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
 import javax.crypto.NoSuchPaddingException;
@@ -22,16 +23,22 @@ public class StringAESAndBase64EncryptionService implements StringEncryptionServ
     this.secretKey = secretKey;
   }
 
-  public String encrypt(String plain) {
-    InputStream stream = new ByteArrayInputStream(plain.getBytes());
-    InputStream encrypted = encrypt(stream);
-    return toBase64EncodedString(encrypted);
+  @Override
+  public Function<String, String> encrypt() {
+    return (String plain) -> {
+      InputStream stream = new ByteArrayInputStream(plain.getBytes());
+      InputStream encrypted = encrypt(stream);
+      return toBase64EncodedString(encrypted);
+    };
   }
 
-  public String decrypt(String encrypted) {
-    InputStream encrptedStream = fromBase64EncodedString(encrypted);
-    InputStream decrypted = decrypt(encrptedStream);
-    return toString(decrypted);
+  @Override
+  public Function<String, String> decrypt() {
+    return (String encrypted) -> {
+      InputStream encryptedStream = fromBase64EncodedString(encrypted);
+      InputStream decrypted = decrypt(encryptedStream);
+      return toString(decrypted);
+    };
   }
 
   private String toBase64EncodedString(InputStream input) {

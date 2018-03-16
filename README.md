@@ -16,9 +16,10 @@ Make sure DRIVEBACKUP_CLIENT_SECRETS is exported.
 ### Backup
 `java -jar target/drivebackup-0.7.0-jar-with-dependencies.jar backup -encrypt -encryptNames -source src -target backup_drivebackup_sources`
 ### Recover files from backup
-* Download the `backup_drivebackup_sources` dir from google drive to the current dir.
+* Create target dir
+`mkdir recovered`
 * Run
-`java -jar target/drivebackup-0.7.0-jar-with-dependencies.jar decrypt -decryptNames -source backup_drivebackup_sources -target recovered -secretKey drivebackup_encryption.key`
+`java -jar target/drivebackup-0.7.0-jar-with-dependencies.jar recover -decrypt -decryptNames -baseBackupDir backup_drivebackup_sources -recover main -target recovered -secretKey drivebackup_encryption.key`
 to decrypt the content.
 
 ## Run the tests with docker-compose
