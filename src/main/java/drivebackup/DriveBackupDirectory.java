@@ -31,7 +31,7 @@ public interface DriveBackupDirectory extends Named {
     return find(getSubDirectories(), (file) -> file.getName().equals(name));
   }
 
-  private <T> Optional<T> find(Stream<T> stream, Predicate<T> predicate) {
+  default <T> Optional<T> find(Stream<T> stream, Predicate<T> predicate) {
     return stream.filter(predicate).findFirst();
   }
 }

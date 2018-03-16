@@ -5,7 +5,7 @@ jobs:
     working_directory: ~/drivebackup
 
     docker:
-      - image: circleci/openjdk:9-jdk
+      - image: circleci/openjdk:8-jdk
         environment:
           - CC_TEST_REPORTER_ID=ba673ad992797b6b9e954a03e011fa6769900530efb15ff00c7af89253b0d671
     steps:
