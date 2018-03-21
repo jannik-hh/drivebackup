@@ -9,6 +9,7 @@ import static org.junit.Assert.assertTrue;
 import drivebackup.DriveBackupDirectory;
 import drivebackup.DriveBackupFile;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -70,11 +71,11 @@ public class EncryptionDirectoryProxyTest extends BaseEncryptionProxyTest {
     directory.findOrCreateDirectory("subfolder_2");
     directory.saveOrUpdateFile(localFile2);
 
-    directory.deleteAllExceptOf(List.of("subfolder_2", localFile2.getName()));
+    directory.deleteAllExceptOf(Arrays.asList("subfolder_2", localFile2.getName()));
 
     List<String> subDirsNames =
         directory.getSubDirectories().map((d) -> d.getName()).collect(Collectors.toList());
-    assertEquals(List.of("subfolder_2"), subDirsNames);
+    assertEquals(Arrays.asList("subfolder_2"), subDirsNames);
 
     List<DriveBackupFile> files = directory.getFiles().collect(Collectors.toList());
     assertEquals(1, files.size());
